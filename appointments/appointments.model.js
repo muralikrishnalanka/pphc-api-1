@@ -1,0 +1,41 @@
+const { DataTypes } = require('sequelize');
+
+module.exports = model;
+
+function model(sequelize) {
+    const attributes = {
+        partialAppointments: { type: DataTypes.BOOLEAN, allowNull: false },
+        typeOfVisit: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            validate: {
+                notEmpty: true, // enforce non-empty strings
+            },
+        },
+        dcName: { type: DataTypes.STRING, allowNull: false },
+        tests: {
+            type: DataTypes.STRING, // use array type for multiple tests
+            allowNull: false,
+        },
+        preferredDate: { type: DataTypes.DATE, allowNull: false },
+        preferredTime: { type: DataTypes.TIME, allowNull: false },
+        customerId: { type: DataTypes.INTEGER, references: { model: 'customers', key: 'id' } },
+        statusId: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'appointmentstatus',key: 'id'}},
+        createdBy: { type: DataTypes.INTEGER, references: { model: 'accounts', key: 'id' } }, // add reference to user id
+        updatedBy: { type: DataTypes.INTEGER, references: { model: 'accounts', key: 'id' } }, // add reference to user id
+        created: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
+        updated: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
+    };
+
+    const options = {
+        timestamps: false,
+        defaultScope: {
+            attributes: { exclude: ['passwordHash'] },
+        },
+        scopes: {
+            withHash: { attributes: {} },
+        },
+    };
+
+    return sequelize.define('appointment', attributes, options);
+}
