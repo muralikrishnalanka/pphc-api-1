@@ -5,18 +5,13 @@ module.exports = model;
 function model(sequelize) {
     const attributes = {
         partialAppointments: { type: DataTypes.BOOLEAN, allowNull: false },
-        typeOfVisit: {
-            type: DataTypes.STRING,
-            allowNull: false,
+        typeOfVisit: {type: DataTypes.STRING,allowNull: false,
             validate: {
                 notEmpty: true, // enforce non-empty strings
             },
         },
         dcName: { type: DataTypes.STRING, allowNull: false },
-        tests: {
-            type: DataTypes.STRING, // use array type for multiple tests
-            allowNull: false,
-        },
+        appointment_labtestsId: { type: DataTypes.INTEGER, references: { model: 'appointmentlabtests', key: 'id'}},
         preferredDate: { type: DataTypes.DATE, allowNull: false },
         preferredTime: { type: DataTypes.TIME, allowNull: false },
         customerId: { type: DataTypes.INTEGER, references: { model: 'customers', key: 'id' } },

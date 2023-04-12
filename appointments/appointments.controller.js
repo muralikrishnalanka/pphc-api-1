@@ -34,7 +34,7 @@ function createSchema(req, res, next) {
         partialAppointments: Joi.boolean().required(),
         typeOfVisit: Joi.string().required(),
         dcName: Joi.string().required(),
-        tests: Joi.string().required(),
+        tests: Joi.array().required(),
         preferredDate: Joi.date().required(),
         preferredTime: Joi.string().regex(/^([0-9]{2})\:([0-9]{2})$/).required(),
         customerId: Joi.number().required(),
@@ -51,14 +51,13 @@ function create(req, res, next) {
 
 function updateSchema(req, res, next) {
     const schemaRules = {
-        partialAppointments: Joi.boolean().empty(''),
-        typeOfVisit: Joi.string().empty(''),
-        dcName: Joi.string().empty(''),
-        tests: Joi.string().empty(''),
-        preferredDate: Joi.date().empty(''),
+        partialAppointments: Joi.boolean().required(),
+        typeOfVisit: Joi.string().required(),
+        dcName: Joi.string().required(),
+        tests: Joi.array.required(),
+        preferredDate: Joi.date().required(),
         preferredTime: Joi.string().regex(/^([0-9]{2})\:([0-9]{2})$/).empty(''),
         stausId: Joi.INTEGER().required()
-
     };
 
     // only admins can update role

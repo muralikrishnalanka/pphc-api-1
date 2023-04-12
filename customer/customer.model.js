@@ -15,11 +15,11 @@ function model(sequelize) {
         dob: { type: DataTypes.DATE }, // include time part of value
         phone: { type: DataTypes.STRING },
         address: { type: DataTypes.STRING },
-        state: { type: DataTypes.STRING },
+        stateId: { type: DataTypes.INTEGER, references: { model: 'states', key: 'id' } },
         city: { type: DataTypes.STRING },
         pincode: { type: DataTypes.STRING },
-        statusId: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'customerstatus',key: 'id'}},
-        lab_tests: { type: DataTypes.STRING }, // use array type for multiple tests
+        labtests_filePath: { type: DataTypes.STRING }, // Add a file path field to the customer schema
+        statusId: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'customerstatus',key: 'id'}},        
         createdBy: { type: DataTypes.INTEGER, references: { model: 'accounts', key: 'id' } }, // add reference to user id
         updatedBy: { type: DataTypes.INTEGER, references: { model: 'accounts', key: 'id' } }, // add reference to user id
         created: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
