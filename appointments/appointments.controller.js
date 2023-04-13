@@ -38,7 +38,7 @@ function createSchema(req, res, next) {
         preferredDate: Joi.date().required(),
         preferredTime: Joi.string().regex(/^([0-9]{2})\:([0-9]{2})$/).required(),
         customerId: Joi.number().required(),
-        stausId: Joi.INTEGER().required()
+        statusId: Joi.number().required()
     });
     validateRequest(req, next, schema);
 }
@@ -54,10 +54,10 @@ function updateSchema(req, res, next) {
         partialAppointments: Joi.boolean().required(),
         typeOfVisit: Joi.string().required(),
         dcName: Joi.string().required(),
-        tests: Joi.array.required(),
+        tests: Joi.array().required(),
         preferredDate: Joi.date().required(),
         preferredTime: Joi.string().regex(/^([0-9]{2})\:([0-9]{2})$/).empty(''),
-        stausId: Joi.INTEGER().required()
+        statusId: Joi.number().required()
     };
 
     // only admins can update role

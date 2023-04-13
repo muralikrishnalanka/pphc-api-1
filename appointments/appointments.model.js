@@ -11,7 +11,6 @@ function model(sequelize) {
             },
         },
         dcName: { type: DataTypes.STRING, allowNull: false },
-        appointment_labtestsId: { type: DataTypes.INTEGER, references: { model: 'appointmentlabtests', key: 'id'}},
         preferredDate: { type: DataTypes.DATE, allowNull: false },
         preferredTime: { type: DataTypes.TIME, allowNull: false },
         customerId: { type: DataTypes.INTEGER, references: { model: 'customers', key: 'id' } },

@@ -6,7 +6,7 @@ function model(sequelize) {
     const Customerlabtests = sequelize.define('appointmentlabtests', {
         id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
         appointmentId: { type: DataTypes.INTEGER,allowNull: false,references: { model: 'appointments', key: 'id'}},
-        labtestId: { type: DataTypes.INTEGER,allowNull: false,references: { model: 'labTests', key: 'id'}}
+        labTestId: { type: DataTypes.INTEGER,allowNull: false,references: { model: 'labTests', key: 'id'}}
     }, {
         timestamps: false,
         defaultScope: {
