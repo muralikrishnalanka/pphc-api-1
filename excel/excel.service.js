@@ -38,21 +38,25 @@ function uploadExcel(req, res) {
                 dob: row['DOB'],
                 phone: row['CustomerNo'],
                 address: row['Address'],
-                state: row['State'],
+                stateId: row['State'],
                 city: row['City'],
                 pincode: row['Pincode'],
                 labTest: row['LabTest'],
+                statusId: row['Status'],
             };
         });
 
         db.Customer.bulkCreate(customers)
-            .then(() => {
-                return res.status(200).json({ result: 'Customers uploaded successfully' });
-            })
-            .catch(error => {
-                console.error('Error uploading customers:', error);
-                return res.status(500).json({ message: 'Internal server error' });
-            });
+    .then(() => {
+        res.status(200);
+        res.end(JSON.stringify({ result: 'Customers uploaded successfully' }));
+    })
+    .catch(error => {
+        console.error('Error uploading customers:', error);
+        res.status(500);
+        res.end(JSON.stringify({ message: 'Internal server error' }));
+    });
+
     });
 }
 
