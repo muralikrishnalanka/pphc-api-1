@@ -1,6 +1,11 @@
 const jwt = require('express-jwt').expressjwt;
 const { secret } = require('config.json');
 const db = require('_helpers/db');
+const { json } = require('body-parser');
+//const flatted = require('flatted');
+
+const CircularJSON = require('circular-json');
+
 
 module.exports = authorize;
 
@@ -17,16 +22,23 @@ function authorize(roles = []) {
 
   return [
     authenticateJwt(),
-    async (req, res, next) => {
-      const account = await db.Account.findByPk(req.user.sub);
+    async (req, res, next) => {      
 
-      if (!account || (roles.length && !roles.includes(account.role))) {
-        return res.status(401).json({ message: 'Unauthorized' });
+     // console.log(flatted(req));
+      console.log('req user'+ JSON.stringify(req.auth))
+      const account = await db.Account.findByPk(req.auth.id);
+      var isaccount= false
+      if(account){
+         isaccount = true
       }
 
-      req.user.role = account.role;
+      if (!account || (roles.length && !roles.includes(account.role))) {
+        return res.status(401).json({ message: 'Unauthorized inAutorizemethod'+ isaccount +JSON.stringify(req.auth.id)});
+      }
+
+      req.auth.role = account.role;
       const refreshTokens = await account.getRefreshTokens();
-      req.user.ownsToken = token => refreshTokens.map(t => t.token).includes(token);
+      req.auth.ownsToken = token => refreshTokens.map(t => t.token).includes(token);
       next();
     }
   ];

@@ -14,8 +14,8 @@ const path = require('path');
 router.post('/create', createSchema, create);
 router.put('/:id', updateSchema, update);
 //router.post('/update',updateSchema,update);
-router.post('/getById',  getById);
-router.post('/getAll',  getAll);
+router.get('/getById',  getById);
+router.get('/getAll', authorize([Role.Admin,Role.Provider,Role.QC,Role.Manager]), getAll);
 router.post('/delete', authorize(), _delete);
 
 
@@ -30,9 +30,9 @@ function getAll(req, res, next) {
 
 function getById(req, res, next) {
     // users can get their own account and admins can get any account
-    if (Number(req.params.id) !== req.user.id && req.user.role !== Role.Admin) {
-        return res.status(401).json({ message: 'Unauthorized' });
-    }
+    // if (Number(req.params.id) !== req.user.id && req.user.role !== Role.Admin) {
+    //     return res.status(401).json({ message: 'Unauthorized' });
+    // }
 
     customerService.getById(req.params.id,{include: LabTests})
         .then(customer => customer ? res.json(customer) : res.sendStatus(404))
@@ -133,9 +133,9 @@ function update(req, res, next) {
 }
 
 function _delete(req, res, next) {
-    if (Number(req.params.id) !== req.user.id && req.user.role !== Role.Admin) {
-        return res.status(401).json({ message: 'Unauthorized' });
-    }
+    // if (Number(req.params.id) !== req.user.id && req.user.role !== Role.Admin) {
+    //     return res.status(401).json({ message: 'Unauthorized' });
+    // }
 
     customerService.delete(req.params.id)
         .then(() => res.json({ message: 'Customer deleted successfully' }))

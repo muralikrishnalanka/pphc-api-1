@@ -3,6 +3,6 @@ module.exports = {
     User: 'User',
     Provider:'Provider',
     QC:'QC',
-    Manager:'manager',
-    Customer:'customer'
+    Manager:'Manager',
+    Customer:'Customer'
 }
