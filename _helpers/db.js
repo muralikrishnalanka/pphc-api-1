@@ -26,6 +26,7 @@ async function initialize() {
     db.AppointmentStatus = require('../appointments/appointmentstatus.model')(sequelize);
     db.CustomerStatus = require('../customer/customerstatus.model')(sequelize);
     db.States = require('../states/states.model')(sequelize);
+    db.Insurer = require('../insurer/insurer.model')(sequelize);
     db.LabTests = require('../labtests/labtests.model')(sequelize);
     db.Dcs = require('../dcs/dcs.model')(sequelize);
     db.Customer = require('../customer/customer.model')(sequelize);
@@ -40,6 +41,14 @@ async function initialize() {
 
     db.States.hasMany(db.Customer, { onDelete: 'CASCADE' });
     db.Customer.belongsTo(db.States, { foreignKey: 'stateId' });
+
+    
+    db.Insurer.hasMany(db.Customer, { onDelete: 'CASCADE' });
+    db.Customer.belongsTo(db.Insurer, { foreignKey: 'insurerId' });
+
+    
+    db.Insurer.hasMany(db.LabTests, { onDelete: 'CASCADE' });
+    db.LabTests.belongsTo(db.Insurer, { foreignKey: 'insurerId' });
 
     db.Account.hasMany(db.Customer, { onDelete: 'CASCADE' });
     db.Customer.belongsTo(db.Account);

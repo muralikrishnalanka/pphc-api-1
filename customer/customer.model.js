@@ -4,7 +4,7 @@ module.exports = model;
 
 function model(sequelize) {
     const attributes = {
-        insurance_provider: { type: DataTypes.STRING },
+        tpaRequestId: { type: DataTypes.STRING },
         policy_no: { type: DataTypes.STRING },
         member_id: { type: DataTypes.STRING },
         agent_name: { type: DataTypes.STRING },
@@ -24,6 +24,7 @@ function model(sequelize) {
         updatedBy: { type: DataTypes.INTEGER, references: { model: 'accounts', key: 'id' } }, // add reference to user id
         created: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
         updated: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
+        insurance_provider: { type: DataTypes.INTEGER, references: { model: 'insurers', key: 'id' } }
     };
 
     const options = {

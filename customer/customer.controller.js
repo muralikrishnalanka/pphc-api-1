@@ -15,7 +15,7 @@ router.post('/create', createSchema, create);
 router.put('/:id', updateSchema, update);
 //router.post('/update',updateSchema,update);
 router.get('/getById',  getById);
-router.get('/getAll', authorize([Role.Admin,Role.Provider,Role.QC,Role.Manager]), getAll);
+router.get('/getAll', authorize(), getAll);
 router.post('/delete', authorize(), _delete);
 
 
@@ -23,6 +23,7 @@ module.exports = router;
 
 
 function getAll(req, res, next) {
+  console.log('req' +JSON.stringify(req))
     customerService.getAll()
         .then(customers => res.json(customers))
         .catch(next);

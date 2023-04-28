@@ -23,8 +23,7 @@ app.use('/excel', require('./excel/excel.controller'));
 app.use('/states', require('./states/states.controller'));
 app.use('/labtests', require('./labtests/labtests.controller'));
 app.use('/dcs', require('./dcs/dcs.controller'));
-
-//app.use('/insurer', require('./insurer/insurer.controller'));
+app.use('/insurer', require('./insurer/insurer.controller'));
 
 
 

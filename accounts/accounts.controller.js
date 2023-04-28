@@ -69,7 +69,7 @@ function revokeToken(req, res, next) {
 
     // users can revoke their own tokens and admins can revoke any tokens
     if (!req.user.ownsToken(token) && req.user.role !== Role.Admin) {
-        return res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({ message: 'Unauthorized Token is not valid for Admin' });
     }
 
     accountService.revokeToken({ token, ipAddress })
@@ -159,7 +159,7 @@ function getAll(req, res, next) {
 function getById(req, res, next) {
     // users can get their own account and admins can get any account
     if (Number(req.params.id) !== req.user.id && req.user.role !== Role.Admin) {
-        return res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({ message: 'Unauthorized only Admin can pull data' });
     }
 
     accountService.getById(req.params.id)
@@ -208,7 +208,7 @@ function updateSchema(req, res, next) {
 function update(req, res, next) {
     // users can update their own account and admins can update any account
     if (Number(req.params.id) !== req.user.id && req.user.role !== Role.Admin) {
-        return res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({ message: 'Unauthorized only Admin can update data' });
     }
 
     accountService.update(req.params.id, req.body)
@@ -219,7 +219,7 @@ function update(req, res, next) {
 function _delete(req, res, next) {
     // users can delete their own account and admins can delete any account
     if (Number(req.params.id) !== req.user.id && req.user.role !== Role.Admin) {
-        return res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({ message: 'Unauthorized only Admin can delete data' });
     }
 
     accountService.delete(req.params.id)
