@@ -7,7 +7,7 @@ module.exports = db = {};
 initialize();
 
 async function initialize() {
-    
+
     // create db if it doesn't already exist
     const { host, port, user, password, database } = config.database;
     const connection = await mysql.createConnection({ host, port, user, password });
@@ -34,6 +34,10 @@ async function initialize() {
     db.CustomerLabtests = require('../customer/customerlabtests.model')(sequelize);
     db.Appointmentlabtests = require('../appointments/appointmentslabtests.model')(sequelize);
     db.CustomerAppointment = require('../customer/customerappointment.model')(sequelize);
+    db.CustomerFile = require('../customer/customerfiles.model')(sequelize);
+    db.CustomerHistory = require('../customer/customerhistory.model')(sequelize);
+
+
 
     // define relationships
     db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE' });
@@ -42,41 +46,51 @@ async function initialize() {
     db.States.hasMany(db.Customer, { onDelete: 'CASCADE' });
     db.Customer.belongsTo(db.States, { foreignKey: 'stateId' });
 
-    
-    db.Insurer.hasMany(db.Customer, { onDelete: 'CASCADE' });
-    db.Customer.belongsTo(db.Insurer, { foreignKey: 'insurerId' });
 
-    
+    db.Insurer.hasMany(db.Customer, { onDelete: 'CASCADE' });
+    db.Customer.belongsTo(db.Insurer, { foreignKey: 'insurance_provider' });
+
+
     db.Insurer.hasMany(db.LabTests, { onDelete: 'CASCADE' });
     db.LabTests.belongsTo(db.Insurer, { foreignKey: 'insurerId' });
 
+    
+    db.Insurer.hasMany(db.Dcs, { onDelete: 'CASCADE' });
+    db.Dcs.belongsTo(db.Insurer, { foreignKey: 'insurerId' });
+
     db.Account.hasMany(db.Customer, { onDelete: 'CASCADE' });
-    db.Customer.belongsTo(db.Account);
+    db.Customer.belongsTo(db.Account,{ foreignKey: 'createdBy' });
 
     db.CustomerStatus.hasMany(db.Customer, { onDelete: 'CASCADE' });
     db.Customer.belongsTo(db.CustomerStatus, { foreignKey: 'statusId' });
 
+    db.Customer.hasMany(db.CustomerFile);
+    db.CustomerFile.belongsTo(db.Customer,{ foreignKey: 'customerId' });
     
+    db.Customer.hasMany(db.CustomerHistory);
+    db.CustomerHistory.belongsTo(db.Customer,{ foreignKey: 'customerId' });
+
+
     db.AppointmentStatus.hasMany(db.Appointments, { onDelete: 'CASCADE' });
     db.Appointments.belongsTo(db.AppointmentStatus, { foreignKey: 'statusId' });
 
     db.CustomerLabtests.belongsTo(db.Customer);
-    db.CustomerLabtests.belongsTo(db.LabTests);
+    db.CustomerLabtests.belongsTo(db.LabTests,{ foreignKey: 'customerId' });
 
     db.Customer.hasMany(db.CustomerLabtests, { onDelete: 'CASCADE' });
-    db.LabTests.hasMany(db.CustomerLabtests);
+    db.LabTests.hasMany(db.CustomerLabtests,{ foreignKey: 'customerId' });
 
     db.Appointmentlabtests.belongsTo(db.Appointments);
-    db.Appointmentlabtests.belongsTo(db.LabTests);
+    db.Appointmentlabtests.belongsTo(db.LabTests,{ foreignKey: 'appointmentId' });
 
     db.Appointments.hasMany(db.Appointmentlabtests, { onDelete: 'CASCADE' });
-    db.LabTests.hasMany(db.Appointmentlabtests);
+    db.LabTests.hasMany(db.Appointmentlabtests,{ foreignKey: 'appointmentId' });
 
     db.Account.hasMany(db.Appointments, { onDelete: 'CASCADE' });
-    db.Appointments.belongsTo(db.Account);
+    db.Appointments.belongsTo(db.Account,{ foreignKey: 'createdBy' });
 
     db.Customer.hasMany(db.Appointments, { onDelete: 'CASCADE' });
-    db.Appointments.belongsTo(db.Customer);
+    db.Appointments.belongsTo(db.Customer,{ foreignKey: 'customerId' });
 
     // sync all models with database
     await sequelize.sync();

@@ -34,12 +34,12 @@ function getById(req, res, next) {
 function createSchema(req, res, next) {
     const schema = Joi.object({         
         name: Joi.string().required(),
-        phonenumber: Joi.INTEGER().required(),
+        phonenumber: Joi.string().required(),
         email: Joi.email().required(),
         address: Joi.string().required(),
         city: Joi.string().required(),
         state: Joi.string().required(),
-        PinCode: Joi.INTEGER().required() 
+        PinCode: Joi.number().required() 
     });
     validateRequest(req, next, schema);
 }
@@ -53,12 +53,12 @@ function create(req, res, next) {
 function updateSchema(req, res, next) {
     const schemaRules = {        
         name: Joi.string().empty(''),
-        phonenumber: Joi.INTEGER().empty(''),
+        phonenumber: Joi.string().empty(''),
         email: Joi.email().empty(''),
         address: Joi.string().empty(''),
         city: Joi.string().empty(''),
         state: Joi.string().empty(''),
-        PinCode: Joi.INTEGER().empty('')         
+        PinCode: Joi.number().empty('')         
     };
 
     // only admins can update role

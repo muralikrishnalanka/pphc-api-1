@@ -89,7 +89,12 @@ async function register(params, origin) {
 
     // first registered account is an admin
     const isFirstAccount = (await db.Account.count()) === 0;
-    account.role = isFirstAccount ? Role.Admin : Role.User;
+    //account.role = isFirstAccount ? Role.Admin : Role.User;
+    account.role = Role[params.role];
+    console.log("rolesent"+ JSON.stringify(params))
+    console.log("roleexpected" +Role[params.role])
+    if(!account.role) throw 'No Role Found'
+
     account.verificationToken = randomTokenString();
 
     // hash password

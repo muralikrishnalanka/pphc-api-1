@@ -85,12 +85,15 @@ function registerSchema(req, res, next) {
         email: Joi.string().email().required(),
         password: Joi.string().min(6).required(),
         confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
-        acceptTerms: Joi.boolean().valid(true).required()
+        acceptTerms: Joi.boolean().valid(true).required(),
+        role:Joi.string().valid(Role.Admin, Role.User,Role.Manager,Role.CustomerCare,Role.Quality,Role.Provider).required(),
+        isProvider:Joi.boolean().valid()
     });
     validateRequest(req, next, schema);
 }
 
 function register(req, res, next) {
+   // console.log("params " +JSON.stringify(req.body))
     accountService.register(req.body, req.get('origin'))
         .then(() => res.json({ message: 'Registration successful, please check your email for verification instructions' }))
         .catch(next);
@@ -175,12 +178,16 @@ function createSchema(req, res, next) {
         email: Joi.string().email().required(),
         password: Joi.string().min(6).required(),
         confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
-        role: Joi.string().valid(Role.Admin, Role.User).required()
+        role: Joi.string().valid(Role.Admin, Role.User,Role.Manager,Role.CustomerCare,Role.Quality,Role.Provider).required()
     });
     validateRequest(req, next, schema);
 }
 
 function create(req, res, next) {
+    if(req.role == Role.Provider)
+    {
+        req.isProvider = 1
+    }
     accountService.create(req.body)
         .then(account => res.json(account))
         .catch(next);

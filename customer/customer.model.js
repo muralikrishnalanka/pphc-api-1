@@ -13,11 +13,12 @@ function model(sequelize) {
         name: { type: DataTypes.STRING },
         gender: { type: DataTypes.STRING },
         dob: { type: DataTypes.DATE }, // include time part of value
-        phone: { type: DataTypes.STRING },
+        phone: { type: DataTypes.STRING, validate: {notEmpty: true, is: /^(?:\+[0-9]{1,3}\.)?[0-9]{4,14}(?:x.+)?$/ } },
         address: { type: DataTypes.STRING },
         stateId: { type: DataTypes.INTEGER, references: { model: 'states', key: 'id' } },
         city: { type: DataTypes.STRING },
-        pincode: { type: DataTypes.STRING },
+        pincode: { type: DataTypes.INTEGER },
+        comments: { type: DataTypes.STRING },
         labtests_filePath: { type: DataTypes.STRING }, // Add a file path field to the customer schema
         statusId: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'customerstatus',key: 'id'}},        
         createdBy: { type: DataTypes.INTEGER, references: { model: 'accounts', key: 'id' } }, // add reference to user id

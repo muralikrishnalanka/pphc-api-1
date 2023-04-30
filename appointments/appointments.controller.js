@@ -33,7 +33,7 @@ function createSchema(req, res, next) {
     const schema = Joi.object({
         partialAppointments: Joi.boolean().required(),
         typeOfVisit: Joi.string().required(),
-        dcName: Joi.string().required(),
+        dcId: Joi.number().required(),
         tests: Joi.array().required(),
         preferredDate: Joi.date().required(),
         preferredTime: Joi.string().regex(/^([0-9]{2})\:([0-9]{2})$/).required(),
@@ -53,7 +53,7 @@ function updateSchema(req, res, next) {
     const schemaRules = {
         partialAppointments: Joi.boolean().required(),
         typeOfVisit: Joi.string().required(),
-        dcName: Joi.string().required(),
+        dcId: Joi.number().required(),
         tests: Joi.array().required(),
         preferredDate: Joi.date().required(),
         preferredTime: Joi.string().regex(/^([0-9]{2})\:([0-9]{2})$/).empty(''),

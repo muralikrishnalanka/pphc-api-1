@@ -2,7 +2,7 @@ module.exports = {
     Admin: 'Admin',
     User: 'User',
     Provider:'Provider',
-    QC:'QC',
+    Quality:'Quality',
     Manager:'Manager',
-    Customer:'Customer'
+    CustomerCare:'CustomerCare'
 }
