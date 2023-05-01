@@ -2,21 +2,35 @@
 const LabTest = require('../labtests/labtests.model');
 const CustomerStatus = require('./customerstatus.model');
 const CircularJSON = require('circular-json');
+const { Op } = require('sequelize');
+
 
 module.exports = {
   getAll,
+  getAllByInsurerId,
   getById,
   create,
   update,
+  search,
   deleteCustomer
 };
 
 async function getAll() {
   const customers = await db.Customer.findAll();
-  const serializedData = CircularJSON.stringify(customers);
   return customers;
 }
-
+async function getAllByInsurerId(insurerId) {
+  try {
+      const dcs = await db.Dcs.findAll({
+          where:{
+              insurerId:insurerId
+      }})
+      return dcs;
+      //return dcs.map((dcs) => mapBasicDetails(dcs));
+  } catch (error) {
+      throw new Error(`Failed to retrieve dcss: ${error.message}`);
+  }
+}
 async function getById(id) {
   console.log("param" +id)
   const customer = await getCustomer(id);
@@ -187,3 +201,30 @@ function basicDetails(customer) {
   const { id, title, firstName, lastName, email, role, created, updated, statusId } = customer;
   return { id, title, firstName, lastName, email, role, created, updated, statusId };
 }
+
+async function search(searchParams, page = 1, limit = 10) {
+  const searchCriteria = {};
+ // const { Op } = db.Customer.Op;
+console.log(page+" "+limit)
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (value) {
+      if (typeof value === 'string') {
+        searchCriteria[key] = { [Op.like]: `%${value}%` };
+      } else {
+        searchCriteria[key] = value;
+      }
+    }
+  }
+
+  const offset = (page - 1) * limit;
+  const { count, rows } = await db.Customer.findAndCountAll({
+    where: searchCriteria,
+    limit,
+    offset,
+  });
+
+  return { rows, count, page, totalPages: Math.ceil(count / limit) };
+};
+
+
+

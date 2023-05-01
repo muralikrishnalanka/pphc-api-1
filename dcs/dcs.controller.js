@@ -13,6 +13,8 @@ const dcsService = require('./dcs.service');
 router.post('/create', createSchema, create);
 router.post('/update/:id', updateSchema, update);
 router.get('/getById/:id',  getById);
+router.get('/getAllByInsurerId/:insurerId',  getAllByInsurerId);
+
 router.get('/getAll',  getAll);
 router.delete('/delete/:id', _delete);
 
@@ -27,7 +29,13 @@ function getAll(req, res, next) {
 
 function getById(req, res, next) {
     dcsService.getById(req.params.id)
-        .then(labtest => labtest ? res.json(labtest) : res.sendStatus(404))
+        .then(dcs => dcs ? res.json(dcs) : res.sendStatus(404))
+        .catch(next);
+}
+
+function getAllByInsurerId(req, res, next) {
+    dcsService.getAllByInsurerId(req.params.insurerId)
+        .then(dcs => dcs ? res.json(dcs) : res.sendStatus(404))
         .catch(next);
 }
 
@@ -39,7 +47,8 @@ function createSchema(req, res, next) {
         address: Joi.string().required(),
         city: Joi.string().required(),
         state: Joi.string().required(),
-        PinCode: Joi.number().required() 
+        PinCode: Joi.number().required(),
+        insurerId: Joi.number().required()
     });
     validateRequest(req, next, schema);
 }

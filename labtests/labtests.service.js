@@ -5,6 +5,7 @@ module.exports = {
     getById,
     create,
     update,
+    getAllByInsurerId,
     deletelabtests,
 };
 
@@ -12,6 +13,18 @@ async function getAll() {
     try {
         const labtests = await db.LabTests.findAll();
         return labtests.map((labtests) => mapBasicDetails(labtests));
+    } catch (error) {
+        throw new Error(`Failed to retrieve labtestss: ${error.message}`);
+    }
+}
+
+async function getAllByInsurerId(insurerId) {
+    try {
+        const labtests = await db.LabTests.findAll({
+            where:{
+                insurerId:insurerId
+        }});
+        return labtests;
     } catch (error) {
         throw new Error(`Failed to retrieve labtestss: ${error.message}`);
     }

@@ -5,6 +5,7 @@ module.exports = {
     getById,
     create,
     update,
+    getAllByInsurerId,
     deletedcs,
 };
 
@@ -12,6 +13,19 @@ async function getAll() {
     try {
         const dcs = await db.Dcs.findAll();
         return dcs.map((dcs) => mapBasicDetails(dcs));
+    } catch (error) {
+        throw new Error(`Failed to retrieve dcss: ${error.message}`);
+    }
+}
+
+async function getAllByInsurerId(insurerId) {
+    try {
+        const dcs = await db.Dcs.findAll({
+            where:{
+                insurerId:insurerId
+        }})
+        return dcs;
+        //return dcs.map((dcs) => mapBasicDetails(dcs));
     } catch (error) {
         throw new Error(`Failed to retrieve dcss: ${error.message}`);
     }

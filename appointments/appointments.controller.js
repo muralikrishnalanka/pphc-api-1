@@ -55,6 +55,7 @@ function updateSchema(req, res, next) {
         typeOfVisit: Joi.string().required(),
         dcId: Joi.number().required(),
         tests: Joi.array().required(),
+        customerId: Joi.number().required(),
         preferredDate: Joi.date().required(),
         preferredTime: Joi.string().regex(/^([0-9]{2})\:([0-9]{2})$/).empty(''),
         statusId: Joi.number().required()

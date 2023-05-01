@@ -146,7 +146,7 @@ async function update(appointmentId, params) {
     }
       
     const historyParams = {
-      action: `created Appointment to ${appointmentStatus.name}`,
+      action: `update Appointment`,
       timestamp: new Date(),
       userId: 2, // This needs to be changed to the actual user ID
       customerId: params.customerId,

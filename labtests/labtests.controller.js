@@ -14,6 +14,7 @@ router.post('/create', createSchema, create);
 router.post('/update/:id', updateSchema, update);
 router.get('/getById/:id',  getById);
 router.get('/getAll',  getAll);
+router.get('/getAllByInsurerId/:insurerId',  getAllByInsurerId);
 router.delete('/delete/:id', _delete);
 
 module.exports = router;
@@ -22,6 +23,12 @@ module.exports = router;
 function getAll(req, res, next) {
     labtestsService.getAll()
         .then(labtests => res.json(labtests))
+        .catch(next);
+}
+
+function getAllByInsurerId(req, res, next) {
+    labtestsService.getAllByInsurerId(req.params.insurerId)
+        .then(labtests => labtests ? res.json(labtests) : res.sendStatus(404))
         .catch(next);
 }
 

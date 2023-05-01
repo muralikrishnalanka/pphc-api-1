@@ -16,6 +16,8 @@ router.put('/:id', updateSchema, update);
 //router.post('/update',updateSchema,update);
 router.get('/getById/:id', getById);
 router.get('/getAll', getAll);
+router.post('/search', updateSchema,search);
+router.get('/getAllByInsurerId/:insurerId',  getAllByInsurerId);
 router.post('/delete', authorize(), _delete);
 
 
@@ -23,10 +25,15 @@ module.exports = router;
 
 
 function getAll(req, res, next) {
-  console.log('req' + JSON.stringify(req))
   customerService.getAll()
     .then(customers => res.json(customers))
     .catch(next);
+}
+
+function getAllByInsurerId(req, res, next) {
+  customerService.getAllByInsurerId(req.params.insurerId)
+      .then(dcs => dcs ? res.json(dcs) : res.sendStatus(404))
+      .catch(next);
 }
 
 function getById(req, res, next) {
@@ -189,4 +196,12 @@ function uploadFile(file, callback) {
     }
   }.bind(this));
 };
+
+function search(req,res,next){
+  console.log("request "+JSON.stringify(req.body))
+  customerService.search(req.body.searchParams,req.body.page,req.body.limit)
+    .then(customers => res.json(customers))
+    .catch(next);
+}
+
 

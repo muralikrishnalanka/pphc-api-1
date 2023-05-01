@@ -1,4 +1,4 @@
-const { DataTypes } = require('sequelize');
+const { DataTypes,Op } = require('sequelize');
 
 module.exports = model;
 
@@ -29,6 +29,8 @@ function model(sequelize) {
     };
 
     const options = {
+        Op,
+        //operatorsAliases:{$like:Op.like},
         timestamps: false,
         defaultScope: {
             // remove 'passwordHash' column if it's not defined in the model
