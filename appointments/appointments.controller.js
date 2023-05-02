@@ -36,7 +36,7 @@ function createSchema(req, res, next) {
         dcId: Joi.number().required(),
         tests: Joi.array().required(),
         preferredDate: Joi.date().required(),
-        preferredTime: Joi.string().regex(/^([0-9]{2})\:([0-9]{2})$/).required(),
+        preferredTime: Joi.string().regex(/^((1[0-2]|0?[1-9]):([0-5][0-9])(\s)?([APap][mM]))$/).required(),
         customerId: Joi.number().required(),
         statusId: Joi.number().required()
     });

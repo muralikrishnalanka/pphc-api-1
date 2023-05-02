@@ -3,6 +3,8 @@ const LabTest = require('../labtests/labtests.model');
 const CustomerStatus = require('./customerstatus.model');
 const CircularJSON = require('circular-json');
 const { Op } = require('sequelize');
+const dcsService = require('../dcs/dcs.service');
+
 
 
 module.exports = {
@@ -82,13 +84,18 @@ async function create(params) {
 
 async function update(id, params) {
   try {
-    const customer = await getCustomer(id);
-    const previousCustomer = customer;
-
+    const customer = await db.Customer.findByPk(id);
+    const previousCustomer = customer.toJSON();
+    
     // Update basic customer information
-    Object.assign(customer, params);
+    Object.keys(params).forEach(key => { 
+        if (params[key] !== null && params[key] !== undefined) { 
+            customer[key] = params[key];
+        } 
+    });
+    
     await customer.save();
-
+    
     if (params.lab_tests) {
       const currentSelectedValues = (await db.CustomerLabtests.findAll({
         where: { customerId: customer.id }
@@ -110,8 +117,7 @@ async function update(id, params) {
         });
 
         if (!relationTableRow) {
-          const CustomerLabtests = new db.CustomerLabtests({ customerId: customer.id, labTestId: testId });
-          await CustomerLabtests.save();
+          await db.CustomerLabtests.create({ customerId: customer.id, labTestId: testId });
         }
       }
     } else {
@@ -121,28 +127,24 @@ async function update(id, params) {
 
     // Create a new customer history record
     const changedFields = {};
-    for (const key of Object.keys(customer.dataValues)) {
-      if (customer.dataValues[key] !== previousCustomer[key]) {
+    for (const key of Object.keys(customer.toJSON())) {
+      if (customer[key] !== previousCustomer[key]) {
         changedFields[key] = previousCustomer[key];
       }
     }
-    // First, retrieve the customerStatus object from the database
-const customerStatus = await db.CustomerStatus.findOne({
-  where: { id: customer.statusId }
-});
+    
+    const customerStatus = await db.CustomerStatus.findByPk(customer.statusId);
+    
+    await db.CustomerHistory.create({
+      action: `updated status to ${customerStatus.name}`,
+      timestamp: new Date(),
+      userId: 2, // This needs to be changed to the actual user ID
+      customerId: customer.id,
+      comments: customer.comments || 'Customer updated',
+      changes: changedFields
+    });
 
-// Then, use the customerStatus name in the action field
-await db.CustomerHistory.create({
-  action: `updated status to ${customerStatus.name}`,
-  timestamp: new Date(),
-  userId: 2, // This needs to be changed to the actual user ID
-  customerId: customer.id,
-  comments: customer.comments || 'Customer updated',
-  changes: changedFields
-});
-
-
-    return getCustomer(id);
+    return db.Customer.findByPk(id);
   } catch (error) {
     throw error;
   }
@@ -179,8 +181,7 @@ async function getCustomer(id) {
             attributes: ['id', 'labTestId']
           }
         ]
-      }
-      ,
+      },
       {
         model: db.CustomerFile,
         order: [['version', 'DESC']],
@@ -193,8 +194,24 @@ async function getCustomer(id) {
       }
     ]
   });
-  if (!customer) throw 'customer not found';
-  return customer;
+
+  //console.log("labsss "+ JSON.stringify(customer));
+  const labTestIds = customer.customerlabtests.map((clt) => clt.labTestId);
+
+  const appointmentsWithData = [];
+  for (const appointment of customer.appointments) {
+    const dcDetails = await dcsService.getById(appointment.dcId);
+    appointmentsWithData.push({
+      ...appointment.toJSON(),
+      dcDetails,
+    });
+  } 
+
+  return {
+    ...customer.toJSON(),
+    labTests: labTestIds,
+    appointments: appointmentsWithData
+  };
 }
 
 function basicDetails(customer) {

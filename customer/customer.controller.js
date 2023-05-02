@@ -16,8 +16,8 @@ router.put('/:id', updateSchema, update);
 //router.post('/update',updateSchema,update);
 router.get('/getById/:id', getById);
 router.get('/getAll', getAll);
-router.post('/search', updateSchema,search);
-router.get('/getAllByInsurerId/:insurerId',  getAllByInsurerId);
+router.post('/search', updateSchema, search);
+router.get('/getAllByInsurerId/:insurerId', getAllByInsurerId);
 router.post('/delete', authorize(), _delete);
 
 
@@ -32,8 +32,8 @@ function getAll(req, res, next) {
 
 function getAllByInsurerId(req, res, next) {
   customerService.getAllByInsurerId(req.params.insurerId)
-      .then(dcs => dcs ? res.json(dcs) : res.sendStatus(404))
-      .catch(next);
+    .then(dcs => dcs ? res.json(dcs) : res.sendStatus(404))
+    .catch(next);
 }
 
 function getById(req, res, next) {
@@ -96,15 +96,15 @@ function updateSchema(req, res, next) {
     address: Joi.string().optional(),
     stateId: Joi.number().optional(),
     city: Joi.string().optional(),
-    pincode: Joi.string().optional(),
+    pincode: Joi.number().optional(),
     lab_tests: Joi.array().optional(),
     statusId: Joi.number().optional(),
-     // Add the file input field to the schema
-  file: Joi.object({
-    size: Joi.number().max(10000000000), // Set optional limit for file size (in bytes)
-    type: Joi.string().valid('application/zip'), // Allow only certain MIME types
-    buffer: Joi.binary().encoding('base64') // Save the file data as a Buffer
-  }).optional()
+    // Add the file input field to the schema
+    file: Joi.object({
+      size: Joi.number().max(10000000000), // Set optional limit for file size (in bytes)
+      type: Joi.string().valid('application/zip'), // Allow only certain MIME types
+      buffer: Joi.binary().encoding('base64') // Save the file data as a Buffer
+    }).optional()
   };
 
   // only admins can update role
@@ -117,35 +117,36 @@ function updateSchema(req, res, next) {
 }
 
 function update(req, res, next) {
-  console.log("request" + JSON.stringify(req.params))
-  // if (Number(req.params.id) !== req.user.id && req.user.role !== Role.Admin) {
-  //     return res.status(401).json({ message: 'Unauthorized' });
-  // }
+  console.log("request", JSON.stringify(req.params));
+
+  // TODO: Add authorization logic using req.user
 
   customerService.update(req.params.id, req.body)
     .then(function (customer) {
-      // if(req.params.lab_tests){
-      //     const labstests = req.params.lab_tests.map(m=>{
-      //         return {customerId : customer.id ,lab_testsId: m }
-      //     }) 
+      // TODO: Uncomment or remove this code block as needed
+      // if (req.params.lab_tests){
+      //     const labstests = req.params.lab_tests.map(m => ({
+      //         customerId : customer.id ,
+      //         lab_testsId: m 
+      //     }));
       // }
-      console.log('files'+req.file)
+
+      console.log('file', req.file);
       if (req.file) {
-        // If a file was uploaded, save it to the file system and set the file path field for the customer
         uploadFile(req.file, function (err) {
           if (err) {
             res.status(500).send('Error uploading file');
           } else {
-            res.status(201).send('Customer updated with file upload');
+            res.status(201).json(customer);
           }
         });
       } else {
-        res.status(201).send('Customer updated');
+        res.status(201).json(customer);
       }
-      return res.json(customer)
     })
     .catch(next);
 }
+
 
 function _delete(req, res, next) {
   // if (Number(req.params.id) !== req.user.id && req.user.role !== Role.Admin) {
@@ -197,9 +198,9 @@ function uploadFile(file, callback) {
   }.bind(this));
 };
 
-function search(req,res,next){
-  console.log("request "+JSON.stringify(req.body))
-  customerService.search(req.body.searchParams,req.body.page,req.body.limit)
+function search(req, res, next) {
+ // console.log("request " + JSON.stringify(req.body))
+  customerService.search(req.body.searchParams, req.body.page, req.body.limit)
     .then(customers => res.json(customers))
     .catch(next);
 }

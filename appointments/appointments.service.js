@@ -21,7 +21,8 @@ async function getAll() {
         model: db.AppointmentStatus
       }]
     });
-    return appointments.map((appointment) => mapBasicDetails(appointment));
+    const formattedTime = appointment.preferredTime;
+    return appointments.map((appointment) => mapBasicDetails(appointment.json({ ...user.toJSON(), preferredTime: formattedTime })));
   } catch (error) {
     throw new Error(`Failed to retrieve appointments: ${error.message}`);
   }
@@ -30,7 +31,9 @@ async function getAll() {
 async function getById(appointmentId) {
   try {
     const appointment = await findAppointmentById(appointmentId);
-    return mapBasicDetails(appointment);
+    const formattedTime = appointment.preferredTime;
+    return mapBasicDetails(appointment.json({ ...user.toJSON(), preferredTime: formattedTime })
+    );
   } catch (error) {
     throw new Error(`Failed to retrieve appointment: ${error.message}`);
   }
@@ -47,6 +50,7 @@ async function create(params) {
     // // hash password
     // params.passwordHash = await hash(params.password);
     console.log("Params" + JSON.stringify(params))
+    params.preferredTime = new Date(`January 01, 2000 ${params.preferredTime}`);  
     const appointment = new db.Appointments(params);
     await appointment.save();
 
@@ -98,6 +102,7 @@ async function update(appointmentId, params) {
     // }
 
     // copy params to appointment and save
+    params.preferredTime = new Date(`January 01, 2000 ${params.preferredTime}`);  
 
     Object.assign(appointment, params);
     appointment.updated = Date.now();

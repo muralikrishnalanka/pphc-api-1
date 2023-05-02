@@ -10,7 +10,7 @@ function model(sequelize) {
         agent_name: { type: DataTypes.STRING },
         agent_code: { type: DataTypes.STRING },
         agent_no: { type: DataTypes.STRING },
-        orderId: { type: DataTypes.STRING },
+        //orderId: { type: DataTypes.STRING },
         name: { type: DataTypes.STRING },
         gender: { type: DataTypes.STRING },
         dob: { type: DataTypes.DATE }, // include time part of value
