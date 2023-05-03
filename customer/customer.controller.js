@@ -18,6 +18,7 @@ router.get('/getById/:id', getById);
 router.get('/getAll', getAll);
 router.post('/search', updateSchema, search);
 router.get('/getAllByInsurerId/:insurerId', getAllByInsurerId);
+router.post('/uploadFile/:id',uploadFile)
 router.post('/delete', authorize(), _delete);
 
 
@@ -99,6 +100,8 @@ function updateSchema(req, res, next) {
     pincode: Joi.number().optional(),
     lab_tests: Joi.array().optional(),
     statusId: Joi.number().optional(),
+    comments: Joi.string().optional(),
+
     // Add the file input field to the schema
     file: Joi.object({
       size: Joi.number().max(10000000000), // Set optional limit for file size (in bytes)
@@ -116,6 +119,7 @@ function updateSchema(req, res, next) {
   validateRequest(req, next, schema);
 }
 
+// Endpoint for updating customer information
 function update(req, res, next) {
   console.log("request", JSON.stringify(req.params));
 
@@ -131,23 +135,69 @@ function update(req, res, next) {
       //     }));
       // }
 
-      console.log('file', req.file);
-      if (req.file) {
-        uploadFile(req.file, function (err) {
-          if (err) {
-            res.status(500).send('Error uploading file');
-          } else {
-            res.status(201).json(customer);
-          }
-        });
-      } else {
-        res.status(201).json(customer);
-      }
+      res.status(201).json(customer);
     })
     .catch(next);
 }
 
+// Endpoint for uploading files
+function uploadFile(req, res, next) {
+  const customerId = req.params.id;
+  const customerDir = path.join(__dirname, 'uploads', customerId);
+  fs.mkdirSync(customerDir, { recursive: true });
 
+  // Get the latest version number by scanning the customer directory and finding the highest numbered file name
+  const latestVersion = fs.readdirSync(customerDir)
+    .map(fileName => fileName.match(/_v(\d+)\.\w+$/))
+    .filter(match => match !== null)
+    .map(match => parseInt(match[1]))
+    .reduce((acc, val) => Math.max(acc, val), 0);
+
+  const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, customerDir);
+    },
+    filename: function (req, file, cb) {
+      const ext = path.extname(file.originalname);
+      const fileName = customerId + '_v' + (latestVersion + 1) + ext; // Increment the version number
+      cb(null, fileName);
+    }
+  });
+  const upload = multer({
+    storage: storage,
+    fileFilter: function (req, file, callback) {
+      console.log("mimetype "+file.mimetype)
+      const allowedMimes = ['application/x-zip-compressed', 'application/zip'];
+      if (allowedMimes.includes(file.mimetype)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Invalid file type. Only PDF or ZIP files are allowed.'));
+      }
+    }
+  }).single('file');
+  upload(req, res, function (err) {
+    if (err) {
+      console.log('error: '+err.message)
+      res.status(500).send('Error uploading file');
+    } else {
+      const filePath = path.join(customerDir, req.file.filename);
+      customerService.update(customerId, { labtests_filePath: filePath,statusId: 6 })        
+
+      // Create a new entry in the customerfiles table for the uploaded file
+      customerService.createFileHistory({
+        customerId: customerId,
+        version: latestVersion + 1,
+        path: filePath
+      }).then(function () {
+          res.status(201).json({ message: 'File uploaded successfully' });
+        })
+        .catch(next);
+    }
+  });
+}
+
+
+// Endpoint for deleting customer information
 function _delete(req, res, next) {
   // if (Number(req.params.id) !== req.user.id && req.user.role !== Role.Admin) {
   //     return res.status(401).json({ message: 'Unauthorized' });
@@ -158,45 +208,6 @@ function _delete(req, res, next) {
     .catch(next);
 }
 
-function uploadFile(file, callback) {
-  const customerId = this._id; // Get the customer ID
-  const customerDir = path.join(__dirname, 'uploads', customerId); // Create a directory for the customer
-  fs.mkdirSync(customerDir, { recursive: true }); // Ensure the directory exists
-  const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, customerDir); // Set the upload destination to the customer directory
-    },
-    filename: function (req, file, cb) {
-      const fileName = customerId + '_' + file.originalname; // Add the customer ID as a prefix to the file name
-      cb(null, fileName);
-    }
-  });
-  const upload = multer({
-    storage: storage,
-    fileFilter: function (req, file, callback) {
-      const allowedMimes = ['application/pdf', 'application/zip']; // Define allowed mimetypes
-      if (allowedMimes.includes(file.mimetype)) {
-        callback(null, true); // Allow file upload
-      } else {
-        callback(new Error('Invalid file type. Only PDF or ZIP files are allowed.')); // Reject file upload
-      }
-    }
-  }).single('file');
-  upload(file, function (err) {
-    if (err) {
-      callback(err);
-    } else {
-      // Set the file path field for the customer
-      const filePath = path.join(customerDir, file.filename);
-      this.labtests_filePath = filePath;
-      this.save().then(() => {
-        callback(null);
-      }).catch(err => {
-        callback(err);
-      });
-    }
-  }.bind(this));
-};
 
 function search(req, res, next) {
  // console.log("request " + JSON.stringify(req.body))

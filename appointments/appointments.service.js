@@ -1,4 +1,6 @@
 ﻿const db = require('_helpers/db');
+const customerService = require('../customer/customer.service');
+
 
 module.exports = {
   getAll,
@@ -62,6 +64,7 @@ async function create(params) {
         }
         const AppointmentLabtests = new db.Appointmentlabtests({ appointmentId: appointment.id, labTestId: testId });
         await AppointmentLabtests.save();
+        await customerService.update(appointment.customerId,{statusId:3});
       });
       await Promise.all(testsPromises);
     }

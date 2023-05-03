@@ -9,7 +9,7 @@ const appointmentsService = require('./appointments.service');
 
 // routes
 router.post('/create', createSchema, create);
-router.post('/update/:id', updateSchema, update);
+router.put('/update/:id', updateSchema, update);
 router.get('/getById/:id',  getById);
 router.get('/getAll',  getAll);
 router.delete('/delete/:id', _delete);
@@ -56,8 +56,8 @@ function updateSchema(req, res, next) {
         dcId: Joi.number().required(),
         tests: Joi.array().required(),
         customerId: Joi.number().required(),
-        preferredDate: Joi.date().required(),
-        preferredTime: Joi.string().regex(/^([0-9]{2})\:([0-9]{2})$/).empty(''),
+        preferredDate: Joi.date().required(), 
+        preferredTime: Joi.string().regex(/^((1[0-2]|0?[1-9]):([0-5][0-9])(\s)?([APap][mM]))$/).required(),
         statusId: Joi.number().required()
     };
 

@@ -14,13 +14,21 @@ module.exports = {
   create,
   update,
   search,
+  createFileHistory,
   deleteCustomer
 };
 
 async function getAll() {
   const customers = await db.Customer.findAll();
-  return customers;
+  const now = new Date();
+  return customers.map(customer => {
+    const dob = new Date(customer.dob);
+    const ageInMs = now - dob;
+    const ageInYears = Math.floor(ageInMs / (1000 * 60 * 60 * 24 * 365));
+    return { ...customer.toJSON(), age: ageInYears };
+  });
 }
+
 async function getAllByInsurerId(insurerId) {
   try {
       const dcs = await db.Dcs.findAll({
@@ -76,7 +84,7 @@ async function create(params) {
     timestamp: new Date(),
     userId: 1,
     customerId: customer.id,
-    comments: params.comments || 'new Customer Registered',
+    comment: params.comments || 'new Customer Registered',
   });
 
   return basicDetails(customer);
@@ -140,7 +148,7 @@ async function update(id, params) {
       timestamp: new Date(),
       userId: 2, // This needs to be changed to the actual user ID
       customerId: customer.id,
-      comments: customer.comments || 'Customer updated',
+      comment: customer.comments || 'Customer updated',
       changes: changedFields
     });
 
@@ -214,6 +222,17 @@ async function getCustomer(id) {
   };
 }
 
+async  function createFileHistory(params) {
+  const customerFile = new db.CustomerFile(params);
+  await customerFile.save();
+  await db.CustomerHistory.create({
+    action: 'Report File Upload',
+    timestamp: new Date(),
+    userId: 1,
+    customerId: params.customerId,
+    comment: params.comments || 'uploaded file Path '+params.path+ 'and Versionn no '+params.version,
+  });
+}
 function basicDetails(customer) {
   const { id, title, firstName, lastName, email, role, created, updated, statusId } = customer;
   return { id, title, firstName, lastName, email, role, created, updated, statusId };
