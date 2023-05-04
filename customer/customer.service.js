@@ -207,7 +207,7 @@ async function getCustomer(id) {
   //console.log("labsss "+ JSON.stringify(customer));
   const labTests = [];
   for (const clt of customer.customerlabtests) {
-    const lt = await db.LabTests.findByPk(clt.id, {
+    const lt = await db.LabTests.findByPk(clt.labTestId, {
       attributes: ['id', 'name']
     });
     labTests.push(lt);
