@@ -205,7 +205,14 @@ async function getCustomer(id) {
   });
 
   //console.log("labsss "+ JSON.stringify(customer));
-  const labTestIds = customer.customerlabtests.map((clt) => clt.labTestId);
+  const labTests = [];
+  for (const clt of customer.customerlabtests) {
+    const lt = await db.LabTests.findByPk(clt.id, {
+      attributes: ['id', 'name']
+    });
+    labTests.push(lt);
+  }
+  const labTestNames = labTests.map((lt) => lt.name);
 
   const appointmentsWithData = [];
   for (const appointment of customer.appointments) {
@@ -233,7 +240,7 @@ async function getCustomer(id) {
 
   return {
     ...customer.toJSON(),
-    labTests: labTestIds,
+    labTests: labTestNames,
     appointments: appointmentsWithData
   };
 }
