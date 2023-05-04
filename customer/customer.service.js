@@ -209,12 +209,27 @@ async function getCustomer(id) {
 
   const appointmentsWithData = [];
   for (const appointment of customer.appointments) {
-    const dcDetails = await dcsService.getById(appointment.dcId);
-    appointmentsWithData.push({
-      ...appointment.toJSON(),
-      dcDetails,
-    });
-  } 
+    const prefTime = appointment.preferredTime;
+    const [hours, minutes] = prefTime.split(':');
+    const dateObj = new Date();
+    dateObj.setHours(hours);
+    dateObj.setMinutes(minutes);
+    
+    const formattedTime = dateObj.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+    console.log(formattedTime); // Output: "1:00 AM"
+  
+    try {
+      const dcDetails = await dcsService.getById(appointment.dcId);
+      appointmentsWithData.push({
+        ...appointment.toJSON(),
+        dcDetails,
+        preferredTime: formattedTime,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+   
 
   return {
     ...customer.toJSON(),
