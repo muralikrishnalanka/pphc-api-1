@@ -19,6 +19,8 @@ router.get('/getAll', getAll);
 router.post('/search', updateSchema, search);
 router.get('/getAllByInsurerId/:insurerId', getAllByInsurerId);
 router.post('/uploadFile/:id',uploadFile)
+router.get('/downloadFile/:customerId/:fileName',downloadFile)
+
 router.post('/delete', authorize(), _delete);
 router.get('/getAllForQC',getAllForQC)
 
@@ -149,6 +151,7 @@ function update(req, res, next) {
 // Endpoint for uploading files
 function uploadFile(req, res, next) {
   const customerId = req.params.id;
+  //const originalFileName = req.file.name;
   const customerDir = path.join(__dirname, 'uploads', customerId);
   fs.mkdirSync(customerDir, { recursive: true });
 
@@ -165,7 +168,8 @@ function uploadFile(req, res, next) {
     },
     filename: function (req, file, cb) {
       const ext = path.extname(file.originalname);
-      const fileName = customerId + '_v' + (latestVersion + 1) + ext; // Increment the version number
+      const name = path.parse(file.originalname).name;
+      const fileName = name+'_'+customerId + '_v' + (latestVersion + 1) + ext; // Increment the version number
       cb(null, fileName);
     }
   });
@@ -187,7 +191,7 @@ function uploadFile(req, res, next) {
       res.status(500).send('Error uploading file');
     } else {
       const filePath = path.join(customerDir, req.file.filename);
-      customerService.update(customerId, { labtests_filePath: filePath,statusId: 6 })        
+      customerService.update(customerId, { labtests_filePath: req.file.filename,statusId: 6 })        
 
       // Create a new entry in the customerfiles table for the uploaded file
       customerService.createFileHistory({
@@ -198,6 +202,24 @@ function uploadFile(req, res, next) {
           res.status(201).json({ message: 'File uploaded successfully' });
         })
         .catch(next);
+    }
+  });
+}
+
+
+function downloadFile(req, res, next) {
+  const customerId = String(req.params.customerId);
+  const fileName = String(req.params.fileName);
+
+  const filePath = path.join(__dirname, 'uploads', customerId, fileName);
+
+  res.setHeader('Content-Disposition', 'attachment; filename=' + fileName); // Set the file name for download
+  res.setHeader('Content-Type', 'application/octet-stream'); // Set the content type for binary data
+
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error(err);
+      return next(err);
     }
   });
 }
