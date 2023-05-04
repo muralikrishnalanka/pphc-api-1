@@ -20,7 +20,7 @@ router.post('/search', updateSchema, search);
 router.get('/getAllByInsurerId/:insurerId', getAllByInsurerId);
 router.post('/uploadFile/:id',uploadFile)
 router.post('/delete', authorize(), _delete);
-
+router.get('/getAllForQC',getAllForQC)
 
 module.exports = router;
 
@@ -34,6 +34,12 @@ function getAll(req, res, next) {
 function getAllByInsurerId(req, res, next) {
   customerService.getAllByInsurerId(req.params.insurerId)
     .then(dcs => dcs ? res.json(dcs) : res.sendStatus(404))
+    .catch(next);
+}
+
+function getAllForQC(req, res, next) {
+  customerService.getAllForQC()
+    .then(customers => res.json(customers))
     .catch(next);
 }
 

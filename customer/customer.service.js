@@ -15,6 +15,7 @@ module.exports = {
   update,
   search,
   createFileHistory,
+  getAllForQC,
   deleteCustomer
 };
 
@@ -31,11 +32,11 @@ async function getAll() {
 
 async function getAllByInsurerId(insurerId) {
   try {
-      const dcs = await db.Dcs.findAll({
+      const customers = await db.Customer.findAll({
           where:{
-              insurerId:insurerId
+              insurance_provider:insurerId
       }})
-      return dcs;
+      return customers;
       //return dcs.map((dcs) => mapBasicDetails(dcs));
   } catch (error) {
       throw new Error(`Failed to retrieve dcss: ${error.message}`);
@@ -262,5 +263,12 @@ console.log(page+" "+limit)
   return { rows, count, page, totalPages: Math.ceil(count / limit) };
 };
 
+async function getAllForQC(){
+  const customers = await db.Customer.findAll({
+    where:{
+        statusId:6
+}});
+return customers;
+}
 
 
