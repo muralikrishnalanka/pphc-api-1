@@ -18,6 +18,7 @@ async function initialize() {
         dialect: 'mysql',
         host: config.database.host,
         port: config.database.port,
+        timezone: '+05:30',
     });
 
     // init models and add them to the exported db object
@@ -61,7 +62,7 @@ async function initialize() {
     db.Account.hasMany(db.Customer, { onDelete: 'CASCADE' });
     db.Customer.belongsTo(db.Account,{ foreignKey: 'createdBy' });
 
-    db.CustomerStatus.hasMany(db.Customer, { onDelete: 'CASCADE' });
+    db.CustomerStatus.hasMany(db.Customer);
     db.Customer.belongsTo(db.CustomerStatus, { foreignKey: 'statusId' });
 
     db.Customer.hasMany(db.CustomerFile);
@@ -71,7 +72,7 @@ async function initialize() {
     db.CustomerHistory.belongsTo(db.Customer,{ foreignKey: 'customerId' });
 
 
-    db.AppointmentStatus.hasMany(db.Appointments, { onDelete: 'CASCADE' });
+    db.AppointmentStatus.hasMany(db.Appointments);
     db.Appointments.belongsTo(db.AppointmentStatus, { foreignKey: 'statusId' });
 
     db.CustomerLabtests.belongsTo(db.Customer);

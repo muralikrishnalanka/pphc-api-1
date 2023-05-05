@@ -105,7 +105,7 @@ async function update(id, params) {
     
     await customer.save();
     
-    if (params.lab_tests) {
+    if (params.lab_tests && params.lab_tests.length > 0) {
       const currentSelectedValues = (await db.CustomerLabtests.findAll({
         where: { customerId: customer.id }
       })).map(row => row.labTestId);
@@ -129,7 +129,7 @@ async function update(id, params) {
           await db.CustomerLabtests.create({ customerId: customer.id, labTestId: testId });
         }
       }
-    } else {
+    } else if(params.lab_tests && !params.lab_tests.length)  {
       // Delete all lab tests for customer
       await db.CustomerLabtests.destroy({ where: { customerId: customer.id } });
     }

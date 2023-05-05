@@ -174,11 +174,25 @@ async function update(appointmentId, params) {
 async function deleteAppointment(appointmentId) {
   try {
     const appointment = await findAppointmentById(appointmentId);
-    await appointment.destroy();
+    
+    // Delete all child rows belonging to this appointment
+   const deletedRowsCount= await db.Appointmentlabtests.destroy({ where: { appointmentId:appointment.id }});
+    console.log(`${deletedRowsCount} rows deleted from AppointmentLabTests`);
+
+   // if (deletedRowsCount > 0) {
+      // Finally, delete the appointment itself
+      await appointment.destroy();
+      console.log('Appointment deleted successfully');
+    //} else {
+    //  console.log('No child rows found in AppointmentLabTests');
+   // }
+
   } catch (error) {
     throw new Error(`Failed to delete appointment: ${error.message}`);
   }
 }
+
+
 
 // helper functions
 
