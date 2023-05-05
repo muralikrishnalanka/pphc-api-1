@@ -18,10 +18,10 @@ module.exports = {
   getAllForQC,
   deleteCustomer
 };
+const now = new Date();
 
 async function getAll() {
   const customers = await db.Customer.findAll();
-  const now = new Date();
   return customers.map(customer => {
     const dob = new Date(customer.dob);
     const ageInMs = now - dob;
