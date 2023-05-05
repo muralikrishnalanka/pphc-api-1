@@ -36,7 +36,12 @@ async function getAllByInsurerId(insurerId) {
           where:{
               insurance_provider:insurerId
       }})
-      return customers;
+      return customers.map(customer => {
+        const dob = new Date(customer.dob);
+        const ageInMs = now - dob;
+        const ageInYears = Math.floor(ageInMs / (1000 * 60 * 60 * 24 * 365));
+        return { ...customer.toJSON(), age: ageInYears };
+      });
       //return dcs.map((dcs) => mapBasicDetails(dcs));
   } catch (error) {
       throw new Error(`Failed to retrieve dcss: ${error.message}`);
@@ -302,7 +307,12 @@ async function getAllForQC(){
     where:{
         statusId:6
 }});
-return customers;
+return customers.map(customer => {
+  const dob = new Date(customer.dob);
+  const ageInMs = now - dob;
+  const ageInYears = Math.floor(ageInMs / (1000 * 60 * 60 * 24 * 365));
+  return { ...customer.toJSON(), age: ageInYears };
+});
 }
 
 
