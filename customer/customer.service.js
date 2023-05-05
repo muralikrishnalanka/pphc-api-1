@@ -104,7 +104,7 @@ async function update(id, params) {
     });
     
     await customer.save();
-    
+
     if (params.lab_tests && params.lab_tests.length > 0) {
       const currentSelectedValues = (await db.CustomerLabtests.findAll({
         where: { customerId: customer.id }
@@ -206,6 +206,7 @@ async function getCustomer(id) {
 
   //console.log("labsss "+ JSON.stringify(customer));
   const labTests = [];
+  
   for (const clt of customer.customerlabtests) {
     const lt = await db.LabTests.findByPk(clt.labTestId, {
       attributes: ['id', 'name']
@@ -224,6 +225,16 @@ async function getCustomer(id) {
     
     const formattedTime = dateObj.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
     console.log(formattedTime); // Output: "1:00 AM"
+  const appoinrtmentTests = [];
+
+    for (const clt of appointment.appointmentlabtests) {
+      const lt = await db.LabTests.findByPk(clt.labTestId, {
+        attributes: ['id', 'name']
+      });
+      appoinrtmentTests.push(lt);
+    }
+  const appointmentTestNames = appoinrtmentTests.map((lt) => lt.name);
+
   
     try {
       const dcDetails = await dcsService.getById(appointment.dcId);
@@ -231,6 +242,7 @@ async function getCustomer(id) {
         ...appointment.toJSON(),
         dcDetails,
         preferredTime: formattedTime,
+        appointmentTests:appointmentTestNames,
       });
     } catch (error) {
       console.error(error);

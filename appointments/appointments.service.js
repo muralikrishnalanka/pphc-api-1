@@ -114,7 +114,7 @@ async function update(appointmentId, params) {
     await customerService.update(appointment.customerId,{statusId:3});
 
 
-    if (params.tests) {
+    if (params.tests  && params.tests.length > 0) {
       const currentSelectedValues = (await db.Appointmentlabtests.findAll({
         where: { appointmentId: appointment.id }
       })).map(row => row.labTestId);
@@ -142,7 +142,7 @@ async function update(appointmentId, params) {
         }
       });
       await Promise.all(testsPromises);
-    } else {
+    } else if(params.tests && !params.tests.length) {
       // Delete all lab tests for customer
       await db.Appointmentlabtests.destroy({ where: { appointmentId: appointment.id } });
     }
@@ -174,7 +174,7 @@ async function update(appointmentId, params) {
 async function deleteAppointment(appointmentId) {
   try {
     const appointment = await findAppointmentById(appointmentId);
-    
+
     // Delete all child rows belonging to this appointment
    const deletedRowsCount= await db.Appointmentlabtests.destroy({ where: { appointmentId:appointment.id }});
     console.log(`${deletedRowsCount} rows deleted from AppointmentLabTests`);
