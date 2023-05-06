@@ -16,7 +16,8 @@ module.exports = {
   search,
   createFileHistory,
   getAllForQC,
-  deleteCustomer
+  deleteCustomer,
+  getAllByStatus,
 };
 const now = new Date();
 
@@ -34,7 +35,25 @@ async function getAllByInsurerId(insurerId) {
   try {
       const customers = await db.Customer.findAll({
           where:{
-              insurance_provider:insurerId
+              insurance_provider:insurerId,
+              statusId:8
+      }})
+      return customers.map(customer => {
+        const dob = new Date(customer.dob);
+        const ageInMs = now - dob;
+        const ageInYears = Math.floor(ageInMs / (1000 * 60 * 60 * 24 * 365));
+        return { ...customer.toJSON(), age: ageInYears };
+      });
+      //return dcs.map((dcs) => mapBasicDetails(dcs));
+  } catch (error) {
+      throw new Error(`Failed to retrieve dcss: ${error.message}`);
+  }
+}
+async function getAllByStatus(statusId) {
+  try {
+      const customers = await db.Customer.findAll({
+          where:{
+              statusId:statusId
       }})
       return customers.map(customer => {
         const dob = new Date(customer.dob);

@@ -18,6 +18,7 @@ router.get('/getById/:id', getById);
 router.get('/getAll', getAll);
 router.post('/search', updateSchema, search);
 router.get('/getAllByInsurerId/:insurerId', getAllByInsurerId);
+router.get('/getAllByStatus/:statusId', getAllByStatus);
 router.post('/uploadFile/:id',uploadFile)
 router.get('/downloadFile/:customerId/:fileName',downloadFile)
 
@@ -42,6 +43,12 @@ function getAllByInsurerId(req, res, next) {
 function getAllForQC(req, res, next) {
   customerService.getAllForQC()
     .then(customers => res.json(customers))
+    .catch(next);
+}
+
+function getAllByStatus(req, res, next) {
+  customerService.getAllByStatus(req.params.statusId)
+    .then(dcs => dcs ? res.json(dcs) : res.sendStatus(404))
     .catch(next);
 }
 
