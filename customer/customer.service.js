@@ -150,7 +150,7 @@ async function update(id, params) {
     const customerStatus = await db.CustomerStatus.findByPk(customer.statusId);
     
     await db.CustomerHistory.create({
-      action: `updated status to ${customerStatus.name}`,
+      action: `updated status to ${customerStatus.status}`,
       timestamp: new Date(),
       userId: 2, // This needs to be changed to the actual user ID
       customerId: customer.id,
