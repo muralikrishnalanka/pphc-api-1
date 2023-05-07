@@ -22,7 +22,12 @@ module.exports = {
 const now = new Date();
 
 async function getAll() {
-  const customers = await db.Customer.findAll();
+  const customers = await db.Customer.findAll(
+   { include: [{
+      model: db.Appointments,
+      order: [['created', 'DESC']],
+      attributes: ['preferredDate']      
+    }]});
   return customers.map(customer => {
     const dob = new Date(customer.dob);
     const ageInMs = now - dob;
@@ -325,7 +330,11 @@ async function getAllForQC(){
   const customers = await db.Customer.findAll({
     where:{
         statusId:6
-}});
+}, include: [{
+  model: db.Appointments,
+  order: [['created', 'DESC']],
+  attributes: ['preferredDate']      
+}]});
 return customers.map(customer => {
   const dob = new Date(customer.dob);
   const ageInMs = now - dob;
