@@ -114,7 +114,7 @@ async function create(params) {
     timestamp: new Date(),
     userId: 1,
     customerId: customer.id,
-    comment: params.comments || 'new Customer Registered',
+    comment: params.comments || 'New Customer Registered',
   });
 
   return basicDetails(customer);
@@ -174,11 +174,11 @@ async function update(id, params) {
     const customerStatus = await db.CustomerStatus.findByPk(customer.statusId);
     
     await db.CustomerHistory.create({
-      action: `updated status to ${customerStatus.status}`,
+      action: customerStatus.status,
       timestamp: new Date(),
       userId: 2, // This needs to be changed to the actual user ID
       customerId: customer.id,
-      comment: customer.comments || 'Customer updated',
+      comment: customer.comments || 'Customer Details updated',
       changes: changedFields
     });
 

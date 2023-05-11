@@ -72,11 +72,11 @@ async function create(params) {
     // Then, use the customerStatus name in the action field
     const changedFields = {};
     const historyParams = {
-      action: `created Appointment`,
+      action: `Created Appointment`,
       timestamp: new Date(),
       userId: 2, // This needs to be changed to the actual user ID
       customerId: params.customerId,
-      comments: params.comments || 'Customer Appointment updated',
+      comments: params.comments || 'Appointment Confirmed',
       changes: changedFields
     };
     await createCustomerHistory(appointment, historyParams);
@@ -111,7 +111,7 @@ async function update(appointmentId, params) {
     appointment.updated = Date.now();
 
     await appointment.save();
-    await customerService.update(appointment.customerId,{statusId:3});
+    await customerService.update(appointment.customerId,{statusId:3,comments:'Status updated to Confirmed'});
 
 
     if (params.tests  && params.tests.length > 0) {
@@ -156,7 +156,7 @@ async function update(appointmentId, params) {
     }
       
     const historyParams = {
-      action: `update Appointment`,
+      action: `Appointment is modified`,
       timestamp: new Date(),
       userId: 2, // This needs to be changed to the actual user ID
       customerId: params.customerId,
