@@ -204,7 +204,7 @@ function uploadFile(req, res, next) {
       customerService.createFileHistory({
         customerId: customerId,
         version: latestVersion + 1,
-        path: filePath
+        path: req.file.filename
       }).then(function () {
           res.status(201).json({ message: 'File uploaded successfully' });
         })

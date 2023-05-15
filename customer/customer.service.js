@@ -80,8 +80,8 @@ async function getById(id) {
 async function create(params) {
   // validate
   console.log(params);
-  if (await db.Customer.findOne({ where: { member_id: params.member_id } })) {
-    throw 'memberId "' + params.member_id + '" is already registered';
+  if (await db.Customer.findOne({ where: { policy_no: params.policy_no } })) {
+    throw 'Policy Io "' + params.policy_no + '" is already registered';
   }
   const currentMax = await db.Customer.max('tpaRequestId');
   const newNum = currentMax? parseInt(currentMax.substr(3)) + 1: 1;
@@ -122,6 +122,8 @@ async function create(params) {
 
 async function update(id, params) {
   try {
+    var actiontext ='';
+    var defaultComment ='';
     const customer = await db.Customer.findByPk(id);
     const previousCustomer = customer.toJSON();
     
@@ -172,8 +174,7 @@ async function update(id, params) {
     }
     
     const customerStatus = await db.CustomerStatus.findByPk(customer.statusId);
-    var actiontext ='';
-    var defaultComment =''
+    
     //let status = 3;
 switch (customer.statusId) {
   case 1:
@@ -200,7 +201,7 @@ switch (customer.statusId) {
     break;
   case 6:
     actiontext = 'Reports Uploaded'
-    defaultComment = 'Reports documents uploaded'
+    defaultComment = params.labtests_filePath? params.labtests_filePath :'Reports documents uploaded'
     console.log("QC");
     break;
   case 7:
@@ -336,13 +337,13 @@ async function getCustomer(id) {
 async  function createFileHistory(params) {
   const customerFile = new db.CustomerFile(params);
   await customerFile.save();
-  await db.CustomerHistory.create({
-    action: 'Report File Upload',
-    timestamp: new Date(),
-    userId: 1,
-    customerId: params.customerId,
-    comment: params.comments || 'uploaded file Path is '+params.path+ ' and Versionn no is '+params.version,
-  });
+  // await db.CustomerHistory.create({
+  //   action: 'Report File Upload',
+  //   timestamp: new Date(),
+  //   userId: 1,
+  //   customerId: params.customerId,
+  //   comment: params.comments || 'uploaded file Path is '+params.path+ ' and Versionn no is '+params.version,
+  // });
 }
 function basicDetails(customer) {
   const { id, title, firstName, lastName, email, role, created, updated, statusId } = customer;
