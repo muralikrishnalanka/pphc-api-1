@@ -79,7 +79,7 @@ async function create(params) {
       comments: params.comments || 'Appointment Confirmed',
       changes: changedFields
     };
-    await createCustomerHistory(appointment, historyParams);
+    //await createCustomerHistory(appointment, historyParams);
 
     return mapBasicDetails(appointment);
   } catch (error) {
@@ -163,7 +163,7 @@ async function update(appointmentId, params) {
       comments: params.comments || 'Customer Appointment updated',
       changes: changedFields
     };
-    await createCustomerHistory(appointment, historyParams);
+   // await createCustomerHistory(appointment, historyParams);
 
     return mapBasicDetails(appointment);
   } catch (error) {

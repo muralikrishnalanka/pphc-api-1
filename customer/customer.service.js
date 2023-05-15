@@ -172,13 +172,60 @@ async function update(id, params) {
     }
     
     const customerStatus = await db.CustomerStatus.findByPk(customer.statusId);
+    var actiontext ='';
+    var defaultComment =''
+    //let status = 3;
+switch (customer.statusId) {
+  case 1:
+    actiontext = 'Customer Details Updated'
+    defaultComment ='Customer Details Updated'
+    console.log("Registered");
+    break;
+  case 2:
+    actiontext = 'No response'
+    console.log("No response");
+    break;
+  case 3:
+    actiontext = 'Created Appointment'
+    defaultComment ='Appointment Confirmed'
+    console.log("Confirmed");
+    break;
+  case 4:
+    actiontext = 'Show'
+    console.log("Pending Reports");
+    break;
+  case 5:
+    actiontext = 'No Show'
+    console.log("Reschedule");
+    break;
+  case 6:
+    actiontext = 'Reports Uploaded'
+    defaultComment = 'Reports documents uploaded'
+    console.log("QC");
+    break;
+  case 7:
+    actiontext = 'Rejected by QC'
+    console.log("Rejected");
+    break;
+  case 8:
+    actiontext = 'Approved by QC'
+    console.log("Completed");
+    break;
+  case 9:
+    actiontext = 'Foreclosed'    
+    console.log("Foreclosed");
+    break;
+  default:
+    console.log("Customer Details Updated");
+}
+
     
     await db.CustomerHistory.create({
-      action: customerStatus.status,
+      action: actiontext,
       timestamp: new Date(),
       userId: 2, // This needs to be changed to the actual user ID
       customerId: customer.id,
-      comment: customer.comments || 'Customer Details updated',
+      comment: params.comments || defaultComment,
       changes: changedFields
     });
 
@@ -228,7 +275,7 @@ async function getCustomer(id) {
       },
       {
         model: db.CustomerHistory,
-        order: [['timeStamp', 'DESC']]
+        order: [['timeStamp', 'ASC']]
       }
     ]
   });
@@ -294,7 +341,7 @@ async  function createFileHistory(params) {
     timestamp: new Date(),
     userId: 1,
     customerId: params.customerId,
-    comment: params.comments || 'uploaded file Path '+params.path+ 'and Versionn no '+params.version,
+    comment: params.comments || 'uploaded file Path is '+params.path+ ' and Versionn no is '+params.version,
   });
 }
 function basicDetails(customer) {
