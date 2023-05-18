@@ -18,7 +18,7 @@ async function initialize() {
         dialect: 'mysql',
         host: config.database.host,
         port: config.database.port,
-        timezone: '+05:30',
+        timezone: 'Etc/GMT',
     });
 
     // init models and add them to the exported db object

@@ -10,11 +10,16 @@ module.exports = {
 
 async function getAll() {
     try {
-        const states = await db.States.findAll();
-        return states.map((states) => mapBasicDetails(states));
+        const states = await db.States.findAll({
+            order: [
+                ['name', 'ASC'] // Add this line to order by state name in ascending order
+            ]
+        });
+        return states.map((state) => mapBasicDetails(state));
     } catch (error) {
-        throw new Error(`Failed to retrieve statess: ${error.message}`);
+        throw new Error(`Failed to retrieve states: ${error.message}`);
     }
+
 }
 
 async function getById(statesId) {

@@ -111,7 +111,7 @@ async function update(appointmentId, params) {
     appointment.updated = Date.now();
 
     await appointment.save();
-    await customerService.update(appointment.customerId,{statusId:3,comments:'Status updated to Confirmed'});
+    await customerService.update(appointment.customerId,{statusId:3});
 
 
     if (params.tests  && params.tests.length > 0) {
