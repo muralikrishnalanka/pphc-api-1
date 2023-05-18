@@ -133,12 +133,17 @@ async function update(id, params) {
     const previousCustomer = customer.toJSON();
     let isReschedule = false;
     let isStatusChange = true;
-    console.log("PARAMsTATUS" +params.statusId);
-    console.log("CUSTOMERSTATUS" +customer.statusId);
-      isStatusChange = params.statusId? true : false
-    
-    if (customer.statusId == 5 || customer.statusId == 2||customer.statusId == 3) {
+    let isnoRespone = false;
+
+    isStatusChange = params.statusId ? true : false
+
+    if (customer.statusId == 5 || customer.statusId == 2 || customer.statusId == 3) {
       isReschedule = true;
+      console.log("PARAMsTATUS" + params.statusId);
+      console.log("CUSTOMERSTATUS" + customer.statusId);
+      if (params.statusId && params.statusId == 3) {
+        isnoRespone = true
+      }
     }
 
     // Update basic customer information
@@ -207,6 +212,11 @@ async function update(id, params) {
             defaultComment = 'Appointment is modified'
             console.log("Reschedule");
           } else {
+            actiontext = 'Created Appointment'
+            defaultComment = 'Appointment Confirmed'
+            console.log("Confirmed");
+          }
+          if (isnoRespone) {
             actiontext = 'Created Appointment'
             defaultComment = 'Appointment Confirmed'
             console.log("Confirmed");
