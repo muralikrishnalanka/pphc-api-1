@@ -141,7 +141,7 @@ async function update(id, params) {
       isReschedule = true;
       console.log("PARAMsTATUS" + params.statusId);
       console.log("CUSTOMERSTATUS" + customer.statusId);
-      if (params.statusId && params.statusId == 3) {
+      if (params.statusId && (params.statusId == 3 && customer.statusId != 5)) {
         isnoRespone = true
       }
     }
