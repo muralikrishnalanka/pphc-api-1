@@ -87,18 +87,24 @@ async function create(params) {
   if (await db.Customer.findOne({ where: { policy_no: params.policy_no } })) {
     throw 'Policy Io "' + params.policy_no + '" is already registered';
   }
-  const currentMax = await db.Customer.max('tpaRequestId');
-  //const newNum = currentMax? parseInt(currentMax.substr(3)) + 1: 1;
-  const tpaId = 'SHC00' + String(currentMax ? parseInt(currentMax.substr(5)) + 1 : 1);
-  // const newNum = currentMax? parseInt(currentMax.substr(3)) + 1: 1;
-  // const tpaId = 'SHC' + String(newNum).padStart(5, '0');
+  const customers = await db.Customer.findAll({
+    attributes: ['tpaRequestId'],
+    where: {
+      tpaRequestId: {
+        [Op.like]: 'SHC00%'
+      }
+    },
+    raw: true
+  });
+
+  const maxNum = Math.max(0, ...customers.map(cust => parseInt(cust.tpaRequestId.substr(5))));
+  const newNum = (maxNum + 1).toString().padStart(4, '0');
+  const tpaId = `SHC00${newNum}`;
+
   const customer = new db.Customer({
     ...params,
     tpaRequestId: tpaId
   });
-
-  // hash password
-  // customer.passwordHash = await hash(params.password);
 
   // save customer
   await customer.save().then(async function (customer) {
