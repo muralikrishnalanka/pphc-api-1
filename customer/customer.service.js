@@ -392,12 +392,20 @@ function basicDetails(customer) {
   return { id, title, firstName, lastName, email, role, created, updated, statusId };
 }
 
-async function search(searchParams, page = 1, limit = 10) {
+async function search(searchParams) {
+  // Set default values for page and limit
+  const page = parseInt(searchParams.page) || 1;
+  const limit = parseInt(searchParams.limit) || 10;
+  const currentDate = new Date();
   const searchCriteria = {};
-  // const { Op } = db.Customer.Op;
-  console.log(page + " " + limit)
+  if (searchParams.fromdate || searchParams.todate) {
+    const fromDate = searchParams.fromdate ? new Date(`${searchParams.fromdate}T00:00:00.000`) : new Date('2000-01-01T23:59:59.999');
+    const toDate = searchParams.todate ? new Date(`${searchParams.todate}T23:59:59.999`) : currentDate;
+    searchCriteria.created = { [Op.between]: [fromDate, toDate] };
+  }
+  // Build search criteria object excluding page and limit
   for (const [key, value] of Object.entries(searchParams)) {
-    if (value) {
+    if (value && key !== 'page' && key !== 'limit' && key !== 'fromdate' && key !== 'todate') {
       if (typeof value === 'string') {
         searchCriteria[key] = { [Op.like]: `%${value}%` };
       } else {
@@ -406,14 +414,26 @@ async function search(searchParams, page = 1, limit = 10) {
     }
   }
 
-  const offset = (page - 1) * limit;
-  const { count, rows } = await db.Customer.findAndCountAll({
-    where: searchCriteria,
-    limit,
-    offset,
-  });
-
-  return { rows, count, page, totalPages: Math.ceil(count / limit) };
+  // Add a condition to check if limit and page are empty
+  if (!searchParams.limit && !searchParams.page) {
+    // If they're empty, remove the limit and offset properties from the final query
+    const result = await db.Customer.findAll({ where: searchCriteria });
+    return result;
+  } else if (searchParams.limit || searchParams.page) {
+    // Otherwise, proceed with the pagination logic
+    const offset = (page - 1) * limit;
+    const result = await db.Customer.findAndCountAll({
+      where: searchCriteria,
+      limit: limit,
+      offset: offset,
+    });
+    const totalItems = result.count;
+    const totalPages = Math.ceil(totalItems / limit);
+    const currentPage = page;
+    return { customers: result.rows, totalPages, currentPage, totalItems };
+  } else {
+    throw new Error('Missing required parameters');
+  }
 };
 
 async function getAllForQC() {

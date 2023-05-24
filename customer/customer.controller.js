@@ -16,7 +16,7 @@ router.put('/:id', updateSchema, update);
 //router.post('/update',updateSchema,update);
 router.get('/getById/:id', getById);
 router.get('/getAll', getAll);
-router.post('/search', updateSchema, search);
+router.post('/search', search);
 router.get('/getAllByInsurerId/:insurerId', getAllByInsurerId);
 router.get('/getAllByStatus/:statusId', getAllByStatus);
 router.post('/uploadFile/:id',uploadFile)
@@ -245,8 +245,8 @@ function _delete(req, res, next) {
 
 
 function search(req, res, next) {
- // console.log("request " + JSON.stringify(req.body))
-  customerService.search(req.body.searchParams, req.body.page, req.body.limit)
+  console.log("request " + JSON.stringify(req.body))
+  customerService.search(req.body)
     .then(customers => res.json(customers))
     .catch(next);
 }
