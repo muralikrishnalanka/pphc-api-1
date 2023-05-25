@@ -19,7 +19,7 @@ router.get('/getAll', getAll);
 router.post('/search', search);
 router.get('/getAllByInsurerId/:insurerId', getAllByInsurerId);
 router.get('/getAllByStatus/:statusId', getAllByStatus);
-router.post('/uploadFile/:id',uploadFile)
+router.post('/uploadFile/:id/:userId',uploadFile)
 router.get('/downloadFile/:customerId/:fileName',downloadFile)
 
 router.post('/delete', authorize(), _delete);
@@ -67,10 +67,10 @@ function createSchema(req, res, next) {
   const schema = Joi.object({
     insurance_provider: Joi.number().required(),
     policy_no: Joi.string().required(),
-    member_id: Joi.string().required(),
-    agent_name: Joi.string().required(),
-    agent_code: Joi.string().required(),
-    agent_no: Joi.string().required(),
+    member_id: Joi.string().allow('').optional(),
+    agent_name: Joi.string().allow('').optional(),
+    agent_code: Joi.string().allow('').optional(),
+    agent_no: Joi.string().allow('').optional(),
     name: Joi.string().required(),
     gender: Joi.string().required(),
     dob: Joi.date().required(), // include time part of value
@@ -80,7 +80,8 @@ function createSchema(req, res, next) {
     city: Joi.string().required(),
     pincode: Joi.string().required(),
     lab_tests: Joi.array().required(),
-    statusId: Joi.number().required()
+    statusId: Joi.number().required(),
+    createdBy: Joi.number().required()
   });
   validateRequest(req, next, schema);
 }
@@ -101,10 +102,10 @@ function updateSchema(req, res, next) {
   const schemaRules = {
     insurance_provider: Joi.number().optional(),
     policy_no: Joi.string().optional(),
-    member_id: Joi.string().optional(),
-    agent_name: Joi.string().optional(),
-    agent_code: Joi.string().optional(),
-    agent_no: Joi.string().optional(),
+    member_id: Joi.string().allow('').optional(),
+    agent_name: Joi.string().allow('').optional(),
+    agent_code: Joi.string().allow('').optional(),
+    agent_no: Joi.string().allow('').optional(),
     name: Joi.string().optional(),
     gender: Joi.string().optional(),
     dob: Joi.date().optional(), // include time part of value
@@ -116,6 +117,7 @@ function updateSchema(req, res, next) {
     lab_tests: Joi.array().optional(),
     statusId: Joi.number().optional(),
     comments: Joi.string().optional(),
+    updatedBy: Joi.number().required(),
 
     // Add the file input field to the schema
     file: Joi.object({
@@ -158,6 +160,7 @@ function update(req, res, next) {
 // Endpoint for uploading files
 function uploadFile(req, res, next) {
   const customerId = req.params.id;
+  const userId = req.params.userId;
   //const originalFileName = req.file.name;
   const customerDir = path.join(__dirname, 'uploads', customerId);
   fs.mkdirSync(customerDir, { recursive: true });
@@ -198,7 +201,7 @@ function uploadFile(req, res, next) {
       res.status(500).send('Error uploading file');
     } else {
       const filePath = path.join(customerDir, req.file.filename);
-      customerService.update(customerId, { labtests_filePath: req.file.filename,statusId: 6 })        
+      customerService.update(customerId, { labtests_filePath: req.file.filename,statusId: 6, updatedBy : userId })        
 
       // Create a new entry in the customerfiles table for the uploaded file
       customerService.createFileHistory({

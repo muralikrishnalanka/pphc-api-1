@@ -98,7 +98,7 @@ async function create(params) {
   });
 
   const maxNum = Math.max(0, ...customers.map(cust => parseInt(cust.tpaRequestId.substr(5))));
-  const newNum = (maxNum + 1).toString().padStart(4, '0');
+  const newNum = (maxNum + 1).toString();
   const tpaId = `SHC00${newNum}`;
 
   const customer = new db.Customer({
@@ -123,7 +123,7 @@ async function create(params) {
   await db.CustomerHistory.create({
     action: 'Customer Registered',
     timestamp: new Date(),
-    userId: 1,
+    userId: params.createdBy,
     customerId: customer.id,
     comment: params.comments || 'New Customer Registered',
   });
@@ -266,7 +266,7 @@ async function update(id, params) {
     await db.CustomerHistory.create({
       action: actiontext,
       timestamp: new Date(),
-      userId: 2, // This needs to be changed to the actual user ID
+      userId: params.updatedBy, // This needs to be changed to the actual user ID
       customerId: customer.id,
       comment: params.comments || defaultComment,
       changes: changedFields
@@ -318,7 +318,7 @@ async function getCustomer(id) {
       },
       {
         model: db.CustomerHistory,
-        order: [['timeStamp', 'ASC']]
+        order: [['timeStamp', 'ASC']]        
       }
     ]
   });
@@ -341,7 +341,6 @@ async function getCustomer(id) {
     const dateObj = new Date();
     dateObj.setHours(hours);
     dateObj.setMinutes(minutes);
-
     const formattedTime = dateObj.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
     console.log(formattedTime); // Output: "1:00 AM"
     const appoinrtmentTests = [];
@@ -353,8 +352,6 @@ async function getCustomer(id) {
       appoinrtmentTests.push(lt);
     }
     const appointmentTestNames = appoinrtmentTests.map((lt) => lt.name);
-
-
     try {
       const dcDetails = await dcsService.getById(appointment.dcId);
       appointmentsWithData.push({
@@ -367,12 +364,23 @@ async function getCustomer(id) {
       console.error(error);
     }
   }
+  const custHistoryByEmail = [];
+  for(const hist of customer.customerHistories){
+    userId = parseInt(hist.userId);
+    const userEmail = await db.Account.findByPk(hist.userId);
+    console.log('userDetails' +JSON.stringify(userEmail))
+    console.log('userDeuserIdtails' +JSON.stringify(hist.userId))
 
-
+    custHistoryByEmail.push({
+      ...hist.toJSON(),
+      user : userEmail.email
+    })
+  }
   return {
     ...customer.toJSON(),
     labTests: labTestNames,
-    appointments: appointmentsWithData
+    appointments: appointmentsWithData,
+    customerHistories: custHistoryByEmail
   };
 }
 
@@ -396,16 +404,32 @@ async function search(searchParams) {
   // Set default values for page and limit
   const page = parseInt(searchParams.page) || 1;
   const limit = parseInt(searchParams.limit) || 10;
+  const userId = parseInt(searchParams.userId) || null;
   const currentDate = new Date();
   const searchCriteria = {};
   if (searchParams.fromdate || searchParams.todate) {
     const fromDate = searchParams.fromdate ? new Date(`${searchParams.fromdate}T00:00:00.000`) : new Date('2000-01-01T23:59:59.999');
     const toDate = searchParams.todate ? new Date(`${searchParams.todate}T23:59:59.999`) : currentDate;
+    if(searchParams.dateOption == '1'){
+      searchCriteria['$Appointments.preferredDate$'] = { [Op.between]: [fromDate, toDate] }; // set preferredDate attribute using '$Appointments.preferredDate$' syntax
+    }else{
     searchCriteria.created = { [Op.between]: [fromDate, toDate] };
+    }
+  }
+
+  if(userId)
+  {
+    const account = await db.Account.findByPk(userId);
+    if(account.role === 'Quality'){
+      searchCriteria.statusId = 6;
+    }
+    else if(account.role ==='Provider'){
+      searchCriteria.statusId = 8;
+    }
   }
   // Build search criteria object excluding page and limit
   for (const [key, value] of Object.entries(searchParams)) {
-    if (value && key !== 'page' && key !== 'limit' && key !== 'fromdate' && key !== 'todate') {
+    if (value && key !== 'page' && key !== 'limit' && key !== 'fromdate' && key !== 'todate' && key!== 'dateOption' && key!== 'userId') {
       if (typeof value === 'string') {
         searchCriteria[key] = { [Op.like]: `%${value}%` };
       } else {
@@ -417,8 +441,21 @@ async function search(searchParams) {
   // Add a condition to check if limit and page are empty
   if (!searchParams.limit && !searchParams.page) {
     // If they're empty, remove the limit and offset properties from the final query
-    const result = await db.Customer.findAll({ where: searchCriteria });
-    return result;
+    const result = await db.Customer.findAll({ where: searchCriteria ,
+      include: [{
+        model: db.Appointments,
+        order: [['created', 'DESC']],
+        attributes: ['preferredDate']
+      }]
+    });
+    const totalItems = result.count;
+   // return { customers: result };
+   return { customers: result.map(customer => {
+    const dob = new Date(customer.dob);
+    const ageInMs = now - dob;
+    const ageInYears = Math.floor(ageInMs / (1000 * 60 * 60 * 24 * 365));
+    return { ...customer.toJSON(), age: ageInYears };
+  })};
   } else if (searchParams.limit || searchParams.page) {
     // Otherwise, proceed with the pagination logic
     const offset = (page - 1) * limit;
@@ -426,11 +463,21 @@ async function search(searchParams) {
       where: searchCriteria,
       limit: limit,
       offset: offset,
+      include: [{
+        model: db.Appointments,
+        order: [['created', 'DESC']],
+        attributes: ['preferredDate']
+      }]
     });
     const totalItems = result.count;
     const totalPages = Math.ceil(totalItems / limit);
     const currentPage = page;
-    return { customers: result.rows, totalPages, currentPage, totalItems };
+    return { customers: result.rows.map(customer => {
+      const dob = new Date(customer.dob);
+      const ageInMs = now - dob;
+      const ageInYears = Math.floor(ageInMs / (1000 * 60 * 60 * 24 * 365));
+      return { ...customer.toJSON(), age: ageInYears };
+    }), totalPages, currentPage, totalItems };
   } else {
     throw new Error('Missing required parameters');
   }

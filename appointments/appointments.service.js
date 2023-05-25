@@ -55,7 +55,7 @@ async function create(params) {
     params.preferredTime = new Date(`January 01, 2000 ${params.preferredTime}`);  
     const appointment = new db.Appointments(params);
     await appointment.save();
-    await customerService.update(appointment.customerId,{statusId:3});
+    await customerService.update(appointment.customerId,{statusId : 3,updatedBy : params.createdBy});
 
     if (params.tests && params.tests.length) {
       const testsPromises = params.tests.map(async (testId) => {
@@ -111,7 +111,7 @@ async function update(appointmentId, params) {
     appointment.updated = Date.now();
 
     await appointment.save();
-    await customerService.update(appointment.customerId,{statusId:3});
+    await customerService.update(appointment.customerId,{statusId:3,updatedBy:params.updatedBy});
 
 
     if (params.tests  && params.tests.length > 0) {
