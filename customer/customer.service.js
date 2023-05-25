@@ -396,8 +396,8 @@ async function createFileHistory(params) {
   // });
 }
 function basicDetails(customer) {
-  const { id, title, firstName, lastName, email, role, created, updated, statusId } = customer;
-  return { id, title, firstName, lastName, email, role, created, updated, statusId };
+  const { id, tpaRequestId, created, updated, statusId } = customer;
+  return { id, tpaRequestId, created, updated, statusId };
 }
 
 async function search(searchParams) {
