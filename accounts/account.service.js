@@ -80,8 +80,9 @@ async function revokeToken({ token, ipAddress }) {
 async function register(params, origin) {
     // validate
     if (await db.Account.findOne({ where: { email: params.email } })) {
+       throw  params.email+' Email Already Registered'
         // send already registered error in email to prevent account enumeration
-        return await sendAlreadyRegisteredEmail(params.email, origin);
+       // return await sendAlreadyRegisteredEmail(params.email, origin);
     }
 
     // create account object
@@ -95,16 +96,20 @@ async function register(params, origin) {
     console.log("roleexpected" +Role[params.role])
     if(!account.role) throw 'No Role Found'
 
-    account.verificationToken = randomTokenString();
+   // uncomment for sending email verifycations
+    // account.verificationToken = randomTokenString();
 
     // hash password
     account.passwordHash = await hash(params.password);
 
     // save account
+    
+    account.verified = Date.now();
+    account.verificationToken = null;
     await account.save();
 
     // send email
-    await sendVerificationEmail(account, origin);
+  //  await sendVerificationEmail(account, origin);
 }
 
 async function verifyEmail({ token }) {
