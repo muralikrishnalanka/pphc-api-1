@@ -253,6 +253,10 @@ async function update(id, params) {
           actiontext = 'Foreclosed'
           console.log("Foreclosed");
           break;
+        case 10:
+            actiontext = 'Partial Show'
+            console.log("Partial Show");
+            break;  
         default:
           console.log("Customer Details Updated");
       }
