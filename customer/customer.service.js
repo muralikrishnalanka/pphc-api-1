@@ -140,6 +140,7 @@ async function update(id, params) {
     let isReschedule = false;
     let isStatusChange = true;
     let isnoRespone = false;
+    let isPendingReport = false;
 
     isStatusChange = params.statusId ? true : false
 
@@ -150,6 +151,10 @@ async function update(id, params) {
       if (params.statusId && (params.statusId == 3 && customer.statusId != 5)) {
         isnoRespone = true
       }
+    }
+
+    if(customer.statusId == 4 ){
+      isPendingReport = true;
     }
 
     // Update basic customer information
@@ -229,7 +234,12 @@ async function update(id, params) {
           }
           break;
         case 4:
+          if(isPendingReport){
+          actiontext = 'Pending Report'
+
+          }else{
           actiontext = 'Show'
+          }
           console.log("Pending Reports");
           break;
         case 5:
