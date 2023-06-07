@@ -187,7 +187,7 @@ function uploadFile(req, res, next) {
     storage: storage,
     fileFilter: function (req, file, callback) {
       console.log("mimetype "+file.mimetype)
-      const allowedMimes = ['application/x-zip-compressed', 'application/zip'];
+      const allowedMimes = ['application/x-zip-compressed', 'application/zip','application/pdf'];
       if (allowedMimes.includes(file.mimetype)) {
         callback(null, true);
       } else {
@@ -201,7 +201,12 @@ function uploadFile(req, res, next) {
       res.status(500).send('Error uploading file');
     } else {
       const filePath = path.join(customerDir, req.file.filename);
-      customerService.update(customerId, { labtests_filePath: req.file.filename,statusId: 6, updatedBy : userId })        
+      if(req.comment && req.comment!=''){
+      customerService.update(customerId, { labtests_filePath: req.file.filename,comments:req.comment,statusId: 6, updatedBy : userId })
+      }
+      else{
+      customerService.update(customerId, { labtests_filePath: req.file.filename,statusId: 6, updatedBy : userId })
+      }        
 
       // Create a new entry in the customerfiles table for the uploaded file
       customerService.createFileHistory({

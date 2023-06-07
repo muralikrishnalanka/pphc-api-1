@@ -148,7 +148,7 @@ async function update(id, params) {
       isReschedule = true;
       console.log("PARAMsTATUS" + params.statusId);
       console.log("CUSTOMERSTATUS" + customer.statusId);
-      if (params.statusId && (params.statusId == 3 && customer.statusId != 5)) {
+      if (params.statusId && (params.statusId == 3 && customer.statusId == 2 && params.callFrom =='create')) {
         isnoRespone = true
       }
     }
@@ -159,7 +159,7 @@ async function update(id, params) {
 
     // Update basic customer information
     Object.keys(params).forEach(key => {
-      if (params[key] !== null && params[key] !== undefined) {
+      if (params[key] !== null && params[key] !== undefined && params[key]!=='callFrom') {
         customer[key] = params[key];
       }
     });
@@ -248,7 +248,8 @@ async function update(id, params) {
           break;
         case 6:
           actiontext = 'Reports Uploaded'
-          defaultComment = params.labtests_filePath ? params.labtests_filePath : 'Reports documents uploaded'
+          defaultComment = params.comments ||'' + ' '+params.labtests_filePath ? params.labtests_filePath : 'Reports documents uploaded'
+          params.comments = null
           console.log("QC");
           break;
         case 7:
@@ -332,7 +333,7 @@ async function getCustomer(id) {
       },
       {
         model: db.CustomerHistory,
-        order: [['timeStamp', 'ASC']]        
+        order: [['timeStamp', 'DESC']]        
       }
     ]
   });
@@ -382,12 +383,12 @@ async function getCustomer(id) {
   for(const hist of customer.customerHistories){
     userId = parseInt(hist.userId);
     const userEmail = await db.Account.findByPk(hist.userId);
-    console.log('userDetails' +JSON.stringify(userEmail))
-    console.log('userDeuserIdtails' +JSON.stringify(hist.userId))
+    //console.log('userDetails' +JSON.stringify(userEmail))
+    //console.log('userDeuserIdtails' +JSON.stringify(hist.userId))
 
     custHistoryByEmail.push({
       ...hist.toJSON(),
-      user : userEmail.email
+      user : userEmail.firstName+' '+userEmail.lastName
     })
   }
   return {
