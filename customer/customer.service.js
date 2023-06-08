@@ -426,7 +426,7 @@ async function search(searchParams) {
     const fromDate = searchParams.fromdate ? new Date(`${searchParams.fromdate}T00:00:00.000`) : new Date('2000-01-01T23:59:59.999');
     const toDate = searchParams.todate ? new Date(`${searchParams.todate}T23:59:59.999`) : currentDate;
     if(searchParams.dateOption == '1'){
-      searchCriteria['$Appointments.preferredDate$'] = { [Op.between]: [fromDate, toDate] }; // set preferredDate attribute using '$Appointments.preferredDate$' syntax
+      searchCriteria['$appointments.preferredDate$'] = { [Op.between]: [fromDate, toDate] }; // set preferredDate attribute using '$Appointments.preferredDate$' syntax
     }else{
     searchCriteria.created = { [Op.between]: [fromDate, toDate] };
     }
