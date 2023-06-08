@@ -144,7 +144,7 @@ async function update(id, params) {
 
     isStatusChange = params.statusId ? true : false
 
-    if (customer.statusId == 5 || customer.statusId == 2 || customer.statusId == 3) {
+    if (customer.statusId == 5 || customer.statusId == 2 || customer.statusId == 3 || customer.statusId == 7) {
       isReschedule = true;
       console.log("PARAMsTATUS" + params.statusId);
       console.log("CUSTOMERSTATUS" + customer.statusId);
