@@ -304,13 +304,7 @@ async function getCustomer(id) {
   const customer = await db.Customer.findByPk(id, {
     include: [
       {
-        model: db.CustomerLabtests,
-        include: [
-          {
-            model: db.LabTests,
-            attributes: ['id', 'name']
-          }
-        ]
+        model: db.CustomerLabtests,        
       },
       {
         model: db.CustomerStatus

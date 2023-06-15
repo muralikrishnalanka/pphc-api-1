@@ -59,7 +59,7 @@ function getById(req, res, next) {
   // }
 
   customerService.getById(req.params.id)
-    .then(customer => customer ? res.json(customer) : res.sendStatus(404))
+    .then(customer => res.json(customer))
     .catch(next);
 }
 
