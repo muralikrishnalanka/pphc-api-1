@@ -23,11 +23,13 @@ const now = new Date();
 
 async function getAll() {
   const customers = await db.Customer.findAll(
-   { include: [{
-      model: db.Appointments,
-      order: [['created', 'DESC']],
-      attributes: ['preferredDate']      
-    }]});
+    {
+      include: [{
+        model: db.Appointments,
+        order: [['created', 'DESC']],
+        attributes: ['preferredDate']
+      }]
+    });
   return customers.map(customer => {
     const dob = new Date(customer.dob);
     const ageInMs = now - dob;
@@ -38,41 +40,43 @@ async function getAll() {
 
 async function getAllByInsurerId(insurerId) {
   try {
-      const customers = await db.Customer.findAll({
-          where:{
-              insurance_provider:insurerId,
-              statusId:8
-      }})
-      return customers.map(customer => {
-        const dob = new Date(customer.dob);
-        const ageInMs = now - dob;
-        const ageInYears = Math.floor(ageInMs / (1000 * 60 * 60 * 24 * 365));
-        return { ...customer.toJSON(), age: ageInYears };
-      });
-      //return dcs.map((dcs) => mapBasicDetails(dcs));
+    const customers = await db.Customer.findAll({
+      where: {
+        insurance_provider: insurerId,
+        statusId: 8
+      }
+    })
+    return customers.map(customer => {
+      const dob = new Date(customer.dob);
+      const ageInMs = now - dob;
+      const ageInYears = Math.floor(ageInMs / (1000 * 60 * 60 * 24 * 365));
+      return { ...customer.toJSON(), age: ageInYears };
+    });
+    //return dcs.map((dcs) => mapBasicDetails(dcs));
   } catch (error) {
-      throw new Error(`Failed to retrieve dcss: ${error.message}`);
+    throw new Error(`Failed to retrieve dcss: ${error.message}`);
   }
 }
 async function getAllByStatus(statusId) {
   try {
-      const customers = await db.Customer.findAll({
-          where:{
-              statusId:statusId
-      }})
-      return customers.map(customer => {
-        const dob = new Date(customer.dob);
-        const ageInMs = now - dob;
-        const ageInYears = Math.floor(ageInMs / (1000 * 60 * 60 * 24 * 365));
-        return { ...customer.toJSON(), age: ageInYears };
-      });
-      //return dcs.map((dcs) => mapBasicDetails(dcs));
+    const customers = await db.Customer.findAll({
+      where: {
+        statusId: statusId
+      }
+    })
+    return customers.map(customer => {
+      const dob = new Date(customer.dob);
+      const ageInMs = now - dob;
+      const ageInYears = Math.floor(ageInMs / (1000 * 60 * 60 * 24 * 365));
+      return { ...customer.toJSON(), age: ageInYears };
+    });
+    //return dcs.map((dcs) => mapBasicDetails(dcs));
   } catch (error) {
-      throw new Error(`Failed to retrieve dcss: ${error.message}`);
+    throw new Error(`Failed to retrieve dcss: ${error.message}`);
   }
 }
 async function getById(id) {
-  console.log("param" +id)
+  console.log("param" + id)
   const customer = await getCustomer(id);
   return customer;
 }
@@ -83,17 +87,24 @@ async function create(params) {
   if (await db.Customer.findOne({ where: { policy_no: params.policy_no } })) {
     throw 'Policy Io "' + params.policy_no + '" is already registered';
   }
-  const currentMax = await db.Customer.max('tpaRequestId');
-  const newNum = currentMax? parseInt(currentMax.substr(3)) + 1: 1;
-  
-  const tpaId = 'SHC' + String(newNum).padStart(5, '0');
+  const customers = await db.Customer.findAll({
+    attributes: ['tpaRequestId'],
+    where: {
+      tpaRequestId: {
+        [Op.like]: 'SHC00%'
+      }
+    },
+    raw: true
+  });
+
+  const maxNum = Math.max(0, ...customers.map(cust => parseInt(cust.tpaRequestId.substr(5))));
+  const newNum = (maxNum + 1).toString();
+  const tpaId = `SHC00${newNum}`;
+
   const customer = new db.Customer({
     ...params,
     tpaRequestId: tpaId
   });
-
-  // hash password
-  // customer.passwordHash = await hash(params.password);
 
   // save customer
   await customer.save().then(async function (customer) {
@@ -112,7 +123,7 @@ async function create(params) {
   await db.CustomerHistory.create({
     action: 'Customer Registered',
     timestamp: new Date(),
-    userId: 1,
+    userId: params.createdBy,
     customerId: customer.id,
     comment: params.comments || 'New Customer Registered',
   });
@@ -122,18 +133,37 @@ async function create(params) {
 
 async function update(id, params) {
   try {
-    var actiontext ='';
-    var defaultComment ='';
+    var actiontext = '';
+    var defaultComment = '';
     const customer = await db.Customer.findByPk(id);
     const previousCustomer = customer.toJSON();
-    
+    let isReschedule = false;
+    let isStatusChange = true;
+    let isnoRespone = false;
+    let isPendingReport = false;
+
+    isStatusChange = params.statusId ? true : false
+
+    if (customer.statusId == 5 || customer.statusId == 2 || customer.statusId == 3 || customer.statusId == 7) {
+      isReschedule = true;
+      console.log("PARAMsTATUS" + params.statusId);
+      console.log("CUSTOMERSTATUS" + customer.statusId);
+      if (params.statusId && (params.statusId == 3 && customer.statusId == 2 && params.callFrom =='create')) {
+        isnoRespone = true
+      }
+    }
+
+    if(customer.statusId == 4 ){
+      isPendingReport = true;
+    }
+
     // Update basic customer information
-    Object.keys(params).forEach(key => { 
-        if (params[key] !== null && params[key] !== undefined) { 
-            customer[key] = params[key];
-        } 
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key]!=='callFrom') {
+        customer[key] = params[key];
+      }
     });
-    
+
     await customer.save();
 
     if (params.lab_tests && params.lab_tests.length > 0) {
@@ -160,7 +190,7 @@ async function update(id, params) {
           await db.CustomerLabtests.create({ customerId: customer.id, labTestId: testId });
         }
       }
-    } else if(params.lab_tests && !params.lab_tests.length)  {
+    } else if (params.lab_tests && !params.lab_tests.length) {
       // Delete all lab tests for customer
       await db.CustomerLabtests.destroy({ where: { customerId: customer.id } });
     }
@@ -172,59 +202,86 @@ async function update(id, params) {
         changedFields[key] = previousCustomer[key];
       }
     }
-    
-    const customerStatus = await db.CustomerStatus.findByPk(customer.statusId);
-    
-    //let status = 3;
-switch (customer.statusId) {
-  case 1:
-    actiontext = 'Customer Details Updated'
-    defaultComment ='Customer Details Updated'
-    console.log("Registered");
-    break;
-  case 2:
-    actiontext = 'No response'
-    console.log("No response");
-    break;
-  case 3:
-    actiontext = 'Created Appointment'
-    defaultComment ='Appointment Confirmed'
-    console.log("Confirmed");
-    break;
-  case 4:
-    actiontext = 'Show'
-    console.log("Pending Reports");
-    break;
-  case 5:
-    actiontext = 'No Show'
-    console.log("Reschedule");
-    break;
-  case 6:
-    actiontext = 'Reports Uploaded'
-    defaultComment = params.labtests_filePath? params.labtests_filePath :'Reports documents uploaded'
-    console.log("QC");
-    break;
-  case 7:
-    actiontext = 'Rejected by QC'
-    console.log("Rejected");
-    break;
-  case 8:
-    actiontext = 'Approved by QC'
-    console.log("Completed");
-    break;
-  case 9:
-    actiontext = 'Foreclosed'    
-    console.log("Foreclosed");
-    break;
-  default:
-    console.log("Customer Details Updated");
-}
 
-    
+    const customerStatus = await db.CustomerStatus.findByPk(customer.statusId);
+
+    //let status = 3;
+    if (isStatusChange) {
+      switch (customer.statusId) {
+        case 1:
+          actiontext = 'Customer Details Updated'
+          defaultComment = 'Customer Details Updated'
+          console.log("Registered");
+          break;
+        case 2:
+          actiontext = 'No response'
+          console.log("No response");
+          break;
+        case 3:
+          if (isReschedule) {
+            actiontext = 'Reschedule'
+            defaultComment = 'Appointment is modified'
+            console.log("Reschedule");
+          } else {
+            actiontext = 'Created Appointment'
+            defaultComment = 'Appointment Confirmed'
+            console.log("Confirmed");
+          }
+          if (isnoRespone) {
+            actiontext = 'Created Appointment'
+            defaultComment = 'Appointment Confirmed'
+            console.log("Confirmed");
+          }
+          break;
+        case 4:
+          if(isPendingReport){
+          actiontext = 'Pending Report'
+
+          }else{
+          actiontext = 'Show'
+          }
+          console.log("Pending Reports");
+          break;
+        case 5:
+          actiontext = 'No Show'
+          console.log("Reschedule");
+          break;
+        case 6:
+          actiontext = 'Reports Uploaded'
+          defaultComment = params.comments ||'' + ' '+params.labtests_filePath ? params.labtests_filePath : 'Reports documents uploaded'
+          params.comments = null
+          console.log("QC");
+          break;
+        case 7:
+          actiontext = 'Rejected by QC'
+          console.log("Rejected");
+          break;
+        case 8:
+          actiontext = 'Approved by QC'
+          console.log("Completed");
+          break;
+        case 9:
+          actiontext = 'Foreclosed'
+          console.log("Foreclosed");
+          break;
+        case 10:
+            actiontext = 'Partial Show'
+            console.log("Partial Show");
+            break;  
+        default:
+          console.log("Customer Details Updated");
+      }
+    }
+    else {
+      actiontext = 'Customer Details Updated'
+      defaultComment = 'Customer Details Updated'
+    }
+
+
     await db.CustomerHistory.create({
       action: actiontext,
       timestamp: new Date(),
-      userId: 2, // This needs to be changed to the actual user ID
+      userId: params.updatedBy, // This needs to be changed to the actual user ID
       customerId: customer.id,
       comment: params.comments || defaultComment,
       changes: changedFields
@@ -247,13 +304,7 @@ async function getCustomer(id) {
   const customer = await db.Customer.findByPk(id, {
     include: [
       {
-        model: db.CustomerLabtests,
-        include: [
-          {
-            model: db.LabTests,
-            attributes: ['id', 'name']
-          }
-        ]
+        model: db.CustomerLabtests,        
       },
       {
         model: db.CustomerStatus
@@ -271,19 +322,19 @@ async function getCustomer(id) {
       {
         model: db.CustomerFile,
         order: [['version', 'DESC']],
-        limit:1,
-        attributes: ['id','path']        
+        limit: 1,
+        attributes: ['id', 'path']
       },
       {
         model: db.CustomerHistory,
-        order: [['timeStamp', 'ASC']]
+        order: [['timeStamp', 'DESC']]        
       }
     ]
   });
 
   //console.log("labsss "+ JSON.stringify(customer));
   const labTests = [];
-  
+
   for (const clt of customer.customerlabtests) {
     const lt = await db.LabTests.findByPk(clt.labTestId, {
       attributes: ['id', 'name']
@@ -299,10 +350,9 @@ async function getCustomer(id) {
     const dateObj = new Date();
     dateObj.setHours(hours);
     dateObj.setMinutes(minutes);
-    
     const formattedTime = dateObj.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
     console.log(formattedTime); // Output: "1:00 AM"
-  const appoinrtmentTests = [];
+    const appoinrtmentTests = [];
 
     for (const clt of appointment.appointmentlabtests) {
       const lt = await db.LabTests.findByPk(clt.labTestId, {
@@ -310,31 +360,40 @@ async function getCustomer(id) {
       });
       appoinrtmentTests.push(lt);
     }
-  const appointmentTestNames = appoinrtmentTests.map((lt) => lt.name);
-
-  
+    const appointmentTestNames = appoinrtmentTests.map((lt) => lt.name);
     try {
       const dcDetails = await dcsService.getById(appointment.dcId);
       appointmentsWithData.push({
         ...appointment.toJSON(),
         dcDetails,
         preferredTime: formattedTime,
-        appointmentTests:appointmentTestNames,
+        appointmentTests: appointmentTestNames,
       });
     } catch (error) {
       console.error(error);
     }
   }
-   
+  const custHistoryByEmail = [];
+  for(const hist of customer.customerHistories){
+    userId = parseInt(hist.userId);
+    const userEmail = await db.Account.findByPk(hist.userId);
+    //console.log('userDetails' +JSON.stringify(userEmail))
+    //console.log('userDeuserIdtails' +JSON.stringify(hist.userId))
 
+    custHistoryByEmail.push({
+      ...hist.toJSON(),
+      user : userEmail.firstName+' '+userEmail.lastName
+    })
+  }
   return {
     ...customer.toJSON(),
     labTests: labTestNames,
-    appointments: appointmentsWithData
+    appointments: appointmentsWithData,
+    customerHistories: custHistoryByEmail
   };
 }
 
-async  function createFileHistory(params) {
+async function createFileHistory(params) {
   const customerFile = new db.CustomerFile(params);
   await customerFile.save();
   // await db.CustomerHistory.create({
@@ -346,16 +405,40 @@ async  function createFileHistory(params) {
   // });
 }
 function basicDetails(customer) {
-  const { id, title, firstName, lastName, email, role, created, updated, statusId } = customer;
-  return { id, title, firstName, lastName, email, role, created, updated, statusId };
+  const { id, tpaRequestId, created, updated, statusId } = customer;
+  return { id, tpaRequestId, created, updated, statusId };
 }
 
-async function search(searchParams, page = 1, limit = 10) {
+async function search(searchParams) {
+  // Set default values for page and limit
+  const page = parseInt(searchParams.page) || 1;
+  const limit = parseInt(searchParams.limit) || 10;
+  const userId = parseInt(searchParams.userId) || null;
+  const currentDate = new Date();
   const searchCriteria = {};
- // const { Op } = db.Customer.Op;
-console.log(page+" "+limit)
+  if (searchParams.fromdate || searchParams.todate) {
+    const fromDate = searchParams.fromdate ? new Date(`${searchParams.fromdate}T00:00:00.000`) : new Date('2000-01-01T23:59:59.999');
+    const toDate = searchParams.todate ? new Date(`${searchParams.todate}T23:59:59.999`) : currentDate;
+    if(searchParams.dateOption == '1'){
+      searchCriteria['$appointments.preferredDate$'] = { [Op.between]: [fromDate, toDate] }; // set preferredDate attribute using '$Appointments.preferredDate$' syntax
+    }else{
+    searchCriteria.created = { [Op.between]: [fromDate, toDate] };
+    }
+  }
+
+  if(userId)
+  {
+    const account = await db.Account.findByPk(userId);
+    if(account.role === 'Quality'){
+      searchCriteria.statusId = 6;
+    }
+    else if(account.role ==='Provider'){
+      searchCriteria.statusId = 8;
+    }
+  }
+  // Build search criteria object excluding page and limit
   for (const [key, value] of Object.entries(searchParams)) {
-    if (value) {
+    if (value && key !== 'page' && key !== 'limit' && key !== 'fromdate' && key !== 'todate' && key!== 'dateOption' && key!== 'userId') {
       if (typeof value === 'string') {
         searchCriteria[key] = { [Op.like]: `%${value}%` };
       } else {
@@ -364,31 +447,67 @@ console.log(page+" "+limit)
     }
   }
 
-  const offset = (page - 1) * limit;
-  const { count, rows } = await db.Customer.findAndCountAll({
-    where: searchCriteria,
-    limit,
-    offset,
-  });
-
-  return { rows, count, page, totalPages: Math.ceil(count / limit) };
+  // Add a condition to check if limit and page are empty
+  if (!searchParams.limit && !searchParams.page) {
+    // If they're empty, remove the limit and offset properties from the final query
+    const result = await db.Customer.findAll({ where: searchCriteria ,
+      include: [{
+        model: db.Appointments,
+        order: [['created', 'DESC']],
+        attributes: ['preferredDate']
+      }]
+    });
+    const totalItems = result.count;
+   // return { customers: result };
+   return { customers: result.map(customer => {
+    const dob = new Date(customer.dob);
+    const ageInMs = now - dob;
+    const ageInYears = Math.floor(ageInMs / (1000 * 60 * 60 * 24 * 365));
+    return { ...customer.toJSON(), age: ageInYears };
+  })};
+  } else if (searchParams.limit || searchParams.page) {
+    // Otherwise, proceed with the pagination logic
+    const offset = (page - 1) * limit;
+    const result = await db.Customer.findAndCountAll({
+      where: searchCriteria,
+      limit: limit,
+      offset: offset,
+      include: [{
+        model: db.Appointments,
+        order: [['created', 'DESC']],
+        attributes: ['preferredDate']
+      }]
+    });
+    const totalItems = result.count;
+    const totalPages = Math.ceil(totalItems / limit);
+    const currentPage = page;
+    return { customers: result.rows.map(customer => {
+      const dob = new Date(customer.dob);
+      const ageInMs = now - dob;
+      const ageInYears = Math.floor(ageInMs / (1000 * 60 * 60 * 24 * 365));
+      return { ...customer.toJSON(), age: ageInYears };
+    }), totalPages, currentPage, totalItems };
+  } else {
+    throw new Error('Missing required parameters');
+  }
 };
 
-async function getAllForQC(){
+async function getAllForQC() {
   const customers = await db.Customer.findAll({
-    where:{
-        statusId:6
-}, include: [{
-  model: db.Appointments,
-  order: [['created', 'DESC']],
-  attributes: ['preferredDate']      
-}]});
-return customers.map(customer => {
-  const dob = new Date(customer.dob);
-  const ageInMs = now - dob;
-  const ageInYears = Math.floor(ageInMs / (1000 * 60 * 60 * 24 * 365));
-  return { ...customer.toJSON(), age: ageInYears };
-});
+    where: {
+      statusId: 6
+    }, include: [{
+      model: db.Appointments,
+      order: [['created', 'DESC']],
+      attributes: ['preferredDate']
+    }]
+  });
+  return customers.map(customer => {
+    const dob = new Date(customer.dob);
+    const ageInMs = now - dob;
+    const ageInYears = Math.floor(ageInMs / (1000 * 60 * 60 * 24 * 365));
+    return { ...customer.toJSON(), age: ageInYears };
+  });
 }
 
 
