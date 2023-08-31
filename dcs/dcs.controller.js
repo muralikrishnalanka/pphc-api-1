@@ -33,6 +33,12 @@ function getById(req, res, next) {
         .catch(next);
 }
 
+function getByCustomerId(req, res, next) {
+    dcsService.getAppointmentDcsByCustomerId(req.params.id)
+        .then(dcs => dcs ? res.json(dcs) : res.sendStatus(404))
+        .catch(next);
+}
+
 function getAllByInsurerId(req, res, next) {
     dcsService.getAllByInsurerId(req.params.insurerId)
         .then(dcs => dcs ? res.json(dcs) : res.sendStatus(404))

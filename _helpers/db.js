@@ -92,6 +92,7 @@ async function initialize() {
 
     db.Customer.hasMany(db.Appointments, { onDelete: 'CASCADE' });
     db.Appointments.belongsTo(db.Customer,{ foreignKey: 'customerId' });
+    db.Appointments.belongsTo(db.Dcs, { foreignKey: 'dcid' });
 
     // sync all models with database
     await sequelize.sync();

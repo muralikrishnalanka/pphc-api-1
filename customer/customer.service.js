@@ -454,7 +454,13 @@ async function search(searchParams) {
       include: [{
         model: db.Appointments,
         order: [['created', 'DESC']],
-        attributes: ['preferredDate']
+        attributes: ['preferredDate'],
+        include: [
+          {
+            model: db.Dcs, // Assuming the model for 'dc' is named 'dc'
+            attributes: ['id', 'state', 'PinCode','name', 'phonenumber', 'email','address','city'], // Add the attributes you want to include from 'dc'
+          }
+        ]
       }]
     });
     const totalItems = result.count;

@@ -32,6 +32,8 @@ function authenticateSchema(req, res, next) {
 }
 
 function authenticate(req, res, next) {
+    console.log('In authenticate() ');
+
     const { email, password } = req.body;
     const ipAddress = req.ip;
     accountService.authenticate({ email, password, ipAddress })
@@ -43,6 +45,7 @@ function authenticate(req, res, next) {
 }
 
 function refreshToken(req, res, next) {
+    console.log('In refrestTOken() ');
     const token = req.cookies.refreshToken;
     const ipAddress = req.ip;
     accountService.refreshToken({ token, ipAddress })
@@ -236,11 +239,14 @@ function _delete(req, res, next) {
 
 // helper functions
 
-function setTokenCookie(res, token) {
+function setTokenCookie(res, token ,ipAddress) {
     // create cookie with refresh token that expires in 7 days
     const cookieOptions = {
-        httpOnly: true,
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      httpOnly: true,
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      domain: ipAddress, // Replace with your Angular application's IP address
+      path: '/', // Replace with the appropriate path
     };
-    res.cookie('refreshToken', token, cookieOptions);
-}
+    res.setHeader('Set-Cookie', serialize('refreshToken', token, cookieOptions));
+  }
+  

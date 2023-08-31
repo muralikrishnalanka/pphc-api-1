@@ -7,6 +7,7 @@ module.exports = {
     update,
     getAllByInsurerId,
     deletedcs,
+    getAppointmentDcsByCustomerId
 };
 
 async function getAll() {
@@ -21,9 +22,10 @@ async function getAll() {
 async function getAllByInsurerId(insurerId) {
     try {
         const dcs = await db.Dcs.findAll({
-            where:{
-                insurerId:insurerId
-        }})
+            where: {
+                insurerId: insurerId
+            }
+        })
         return dcs;
         //return dcs.map((dcs) => mapBasicDetails(dcs));
     } catch (error) {
@@ -35,6 +37,22 @@ async function getById(dcsId) {
     try {
         const dcs = await finddcsById(dcsId);
         return mapBasicDetails(dcs);
+    } catch (error) {
+        throw new Error(`Failed to retrieve dcs: ${error.message}`);
+    }
+}
+
+async function getAppointmentDcsByCustomerId(customerId) {
+    try {
+        const dcs = await db.Appointments.findAll({ where: { customerId: customerId } });
+        var dcList = [];
+
+        for (let i = 0; i < dcs.length; i++) {
+            const dc = await finddcsById(dcs[i].dcId);
+            dcList.push(mapBasicDetails(dc))
+        }
+
+         return dcList;
     } catch (error) {
         throw new Error(`Failed to retrieve dcs: ${error.message}`);
     }
@@ -105,6 +123,6 @@ async function finddcsById(dcsId) {
 }
 
 function mapBasicDetails(dcs) {
-    const { id, name , phonenumber, email ,address ,city ,state , PinCode  } = dcs;
-    return { id, name,phonenumber, email ,address ,city ,state , PinCode  };
+    const { id, name, phonenumber, email, address, city, state, PinCode } = dcs;
+    return { id, name, phonenumber, email, address, city, state, PinCode };
 }
