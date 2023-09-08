@@ -1,19 +1,25 @@
-﻿require('rootpath')();
+﻿
+require('rootpath')();
 const express = require('express');
-const app = express();
+const http = require('http');
+const https = require('https');
+const fs = require('fs');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const errorHandler = require('_middleware/error-handler');
 
+const app = express();
+
+// Configure bodyParser and cookieParser middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-// allow cors requests from any origin and with credentials
+// Allow cors requests from any origin and with credentials
 app.use(cors({ origin: (origin, callback) => callback(null, true), credentials: true }));
 
-// api routes
+// API routes
 app.use('/accounts', require('./accounts/accounts.controller'));
 app.use('/customer', require('./customer/customer.controller'));
 app.use('/customerstatus', require('./customer/customerstatus.controller'));
@@ -25,14 +31,33 @@ app.use('/labtests', require('./labtests/labtests.controller'));
 app.use('/dcs', require('./dcs/dcs.controller'));
 app.use('/insurer', require('./insurer/insurer.controller'));
 
-
-
-// swagger docs route
+// Swagger docs route
 app.use('/api-docs', require('_helpers/swagger'));
 
-// global error handler
+// Global error handler
 app.use(errorHandler);
 
-// start server
-const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 4000;
-app.listen(port, () => console.log('Server listening on port ' + port));
+// HTTP server configuration
+const httpPort = 4001;
+const httpServer = http.createServer(app);
+
+// HTTPS server configuration
+const httpsPort = 4000;
+const httpsOptions = {
+  key: fs.readFileSync('shcgroup_key/shc.key'), // Corrected file extension
+  cert: fs.readFileSync('shcgroup_key/shc.crt'),
+  // Add any necessary CA certificates or chain certificates here if using .p7b
+  // ca: fs.readFileSync('path/to/your/ca-cert.p7b'),
+  // passphrase: 'your-passphrase-if-any',
+};
+
+const httpsServer = https.createServer(httpsOptions, app);
+
+// Start both HTTP and HTTPS servers
+httpServer.listen(httpPort, () => {
+  console.log(`HTTP server is running on port ${httpPort}`);
+});
+
+httpsServer.listen(httpsPort, () => {
+  console.log(`HTTPS server is running on port ${httpsPort}`);
+});
