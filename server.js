@@ -38,11 +38,11 @@ app.use('/api-docs', require('_helpers/swagger'));
 app.use(errorHandler);
 
 // HTTP server configuration
-const httpPort = 4000;
+const httpPort = 4001;
 const httpServer = http.createServer(app);
 
 // HTTPS server configuration
-const httpsPort = 443;
+const httpsPort = 4000;
 const httpsOptions = {
   key: fs.readFileSync('shcgroup_key/shc.key'), // Corrected file extension
   cert: fs.readFileSync('shcgroup_key/shc.crt'),
