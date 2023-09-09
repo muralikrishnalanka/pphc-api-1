@@ -17,7 +17,18 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 // Allow cors requests from any origin and with credentials
-app.use(cors({ origin: (origin, callback) => callback(null, true), credentials: true }));
+const allowedOrigins = ['http://pphc.shcgroup.in', 'https://pphc.shcgroup.in'];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (origin === null || allowedOrigins.includes(origin) || origin.startsWith('http://localhost') || origin.startsWith('https://localhost')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
 
 // API routes
 app.use('/accounts', require('./accounts/accounts.controller'));

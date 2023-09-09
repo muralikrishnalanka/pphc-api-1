@@ -10,13 +10,13 @@ const dcsService = require('./dcs.service');
 
 
 // routes
-router.post('/create', createSchema, create);
-router.post('/update/:id', updateSchema, update);
-router.get('/getById/:id',  getById);
-router.get('/getAllByInsurerId/:insurerId',  getAllByInsurerId);
+router.post('/create', authorize(),createSchema, create);
+router.post('/update/:id', authorize(),updateSchema, update);
+router.get('/getById/:id',  authorize(),getById);
+router.get('/getAllByInsurerId/:insurerId',  authorize(),getAllByInsurerId);
 
-router.get('/getAll',  getAll);
-router.delete('/delete/:id', _delete);
+router.get('/getAll',   authorize(),getAll);
+router.delete('/delete/:id', authorize(), _delete);
 
 module.exports = router;
 
