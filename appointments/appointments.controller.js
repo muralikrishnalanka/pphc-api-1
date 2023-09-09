@@ -8,11 +8,11 @@ const appointmentsService = require('./appointments.service');
 
 
 // routes
-router.post('/create', createSchema, create);
-router.put('/update/:id', updateSchema, update);
-router.get('/getById/:id',  getById);
-router.get('/getAll',  getAll);
-router.delete('/delete/:id', _delete);
+router.post('/create', authorize(),createSchema, create);
+router.put('/update/:id', authorize(),updateSchema, update);
+router.get('/getById/:id',  authorize(),getById);
+router.get('/getAll',  authorize(),getAll);
+router.delete('/delete/:id',authorize(), _delete);
 
 module.exports = router;
 
