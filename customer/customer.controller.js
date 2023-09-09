@@ -19,7 +19,7 @@ router.get('/getAll', authorize(),getAll);
 router.post('/search',authorize(), search);
 router.get('/getAllByInsurerId/:insurerId', authorize(),getAllByInsurerId);
 router.get('/getAllByStatus/:statusId',authorize(), getAllByStatus);
-router.post('/uploadFile/:id/:userId',authorize(),uploadFile)
+router.post('/uploadFile/:id/:userId',uploadFile)
 router.get('/downloadFile/:customerId/:fileName',authorize(),downloadFile)
 
 router.post('/delete', authorize(), _delete);
