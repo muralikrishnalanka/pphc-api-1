@@ -1,9 +1,9 @@
 ﻿{
     "database": {
-        "host": "localhost",
+        "host": "shc-mysql-db.crcyqs7dujzy.ap-south-1.rds.amazonaws.com",
         "port": 3306,
-        "user": "root",
-        "password": "Qwerty@123",
+        "user": "shcdbadmin",
+        "password": "9WHwo7k97DAcTXsu",
         "database": "PPHC-api"
     },
     "secret": "lLR76VUwAUmrUfHon-KQrw",
