@@ -11,19 +11,19 @@ const fs = require('fs');
 const path = require('path');
 
 // routes
-router.post('/create', createSchema, create);
-router.put('/:id', updateSchema, update);
+router.post('/create', authorize(),createSchema, create);
+router.put('/:id', authorize(),updateSchema, update);
 //router.post('/update',updateSchema,update);
-router.get('/getById/:id', getById);
-router.get('/getAll', getAll);
-router.post('/search', search);
-router.get('/getAllByInsurerId/:insurerId', getAllByInsurerId);
-router.get('/getAllByStatus/:statusId', getAllByStatus);
-router.post('/uploadFile/:id/:userId',uploadFile)
-router.get('/downloadFile/:customerId/:fileName',downloadFile)
+router.get('/getById/:id', authorize(),getById);
+router.get('/getAll', authorize(),getAll);
+router.post('/search',authorize(), search);
+router.get('/getAllByInsurerId/:insurerId', authorize(),getAllByInsurerId);
+router.get('/getAllByStatus/:statusId',authorize(), getAllByStatus);
+router.post('/uploadFile/:id/:userId',authorize(),uploadFile)
+router.get('/downloadFile/:customerId/:fileName',authorize(),downloadFile)
 
 router.post('/delete', authorize(), _delete);
-router.get('/getAllForQC',getAllForQC)
+router.get('/getAllForQC',authorize(),getAllForQC)
 
 module.exports = router;
 
