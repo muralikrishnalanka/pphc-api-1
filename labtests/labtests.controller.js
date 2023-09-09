@@ -10,12 +10,12 @@ const labtestsService = require('./labtests.service');
 
 
 // routes
-router.post('/create', createSchema, create);
-router.post('/update/:id', updateSchema, update);
-router.get('/getById/:id',  getById);
-router.get('/getAll',  getAll);
-router.get('/getAllByInsurerId/:insurerId',  getAllByInsurerId);
-router.delete('/delete/:id', _delete);
+router.post('/create', authorize(),createSchema, create);
+router.post('/update/:id', authorize(),updateSchema, update);
+router.get('/getById/:id', authorize(), getById);
+router.get('/getAll',authorize(), getAll);
+router.get('/getAllByInsurerId/:insurerId',  authorize(),getAllByInsurerId);
+router.delete('/delete/:id', authorize(),_delete);
 
 module.exports = router;
 
