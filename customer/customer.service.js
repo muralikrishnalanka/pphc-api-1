@@ -4,7 +4,7 @@ const CustomerStatus = require('./customerstatus.model');
 const CircularJSON = require('circular-json');
 const { Op } = require('sequelize');
 const dcsService = require('../dcs/dcs.service');
-
+const sendSms = require('_helpers/send-sms');
 
 
 module.exports = {
@@ -127,6 +127,8 @@ async function create(params) {
     customerId: customer.id,
     comment: params.comments || 'New Customer Registered',
   });
+
+  //await sendSms({to: 9849477200, message :'Customer Created Successfully',templateid:'1707169484335713347'})
 
   return basicDetails(customer);
 }

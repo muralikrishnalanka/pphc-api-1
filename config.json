@@ -15,5 +15,13 @@
             "user": "venusmailbox@gmail.com",
             "pass": "loiitrleudqvjroj"
         }
+    },
+    "sms": {
+        "username": "SHCARE",
+        "password": "537642",
+        "Senderid" : "SAVEHC",
+        "from": "9849477200",
+        "peid": "1701169408720271704",
+        "url":"http://sms.scubedigi.com/api.php?"
     }
 }
