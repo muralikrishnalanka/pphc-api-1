@@ -1,5 +1,6 @@
 ﻿const db = require('_helpers/db');
 const customerService = require('../customer/customer.service');
+const sendSms = require('_helpers/send-sms');
 
 
 module.exports = {
@@ -82,6 +83,7 @@ async function create(params) {
       changes: changedFields
     };
     //await createCustomerHistory(appointment, historyParams);
+    await sendMessage(appointment.id)
 
     return mapBasicDetails(appointment);
   } catch (error) {
@@ -168,6 +170,7 @@ async function update(appointmentId, params) {
       changes: changedFields
     };
    // await createCustomerHistory(appointment, historyParams);
+   await sendMessage(appointmentId)
 
     return mapBasicDetails(appointment);
   } catch (error) {
@@ -224,4 +227,20 @@ async function createCustomerHistory(appointment, historyParams) {
 
     // Then, use the customerStatus name in the action field
     await db.CustomerHistory.create(historyParams);
+}
+
+async function sendMessage(appointmentId) {
+  const appointment = await db.Appointments.findByPk(appointmentId)
+  const customer = await db.Customer.findByPk(appointment.customerId)
+  const dcDetails = await db.Dcs.findByPk(appointment.dcId)
+  const prefTime = appointment.preferredTime;
+  const [hours, minutes] = prefTime.split(':');
+  const dateObj = new Date();
+  dateObj.setHours(hours);
+  dateObj.setMinutes(minutes);
+  const formattedTime = dateObj.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+  const appointmentOn = appointment.preferredDate.toDateString() + ' at ' + formattedTime
+  const message = 'Your appointment has been scheduled in ' + dcDetails.name + ' on ' + appointmentOn + ' address: ' + dcDetails.address + ' contact ' + dcDetails.phonenumber + ' SH Care India Pvt Ltd.'
+  console.log(message + '## ' + customer.phone)
+  await sendSms({ to: customer.phone, message: message, templateid: '1707169484335713347' })
 }

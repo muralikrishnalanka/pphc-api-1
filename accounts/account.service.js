@@ -129,8 +129,10 @@ async function forgotPassword({ email }, origin) {
     if (!account) return;
 
     // create reset token that expires after 24 hours
-    account.resetToken = randomTokenString();
+    account.resetToken = randomTokenString(8);
     account.resetTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    account.passwordHash = await hash(account.resetToken);
+    account.passwordReset = Date.now();
     await account.save();
 
     // send email
@@ -241,14 +243,14 @@ function generateRefreshToken(account, ipAddress) {
     // create a refresh token that expires in 7 days
     return new db.RefreshToken({
         accountId: account.id,
-        token: randomTokenString(),
+        token: randomTokenString(40),
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         createdByIp: ipAddress
     });
 }
 
-function randomTokenString() {
-    return crypto.randomBytes(40).toString('hex');
+function randomTokenString(size) {
+    return crypto.randomBytes(size).toString('hex');
 }
 
 function basicDetails(account) {
@@ -295,14 +297,14 @@ async function sendAlreadyRegisteredEmail(email, origin) {
 
 async function sendPasswordResetEmail(account, origin) {
     let message;
-    if (origin) {
-        const resetUrl = `${origin}/account/reset-password?token=${account.resetToken}`;
-        message = `<p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
-                   <p><a href="${resetUrl}">${resetUrl}</a></p>`;
-    } else {
-        message = `<p>Please use the below token to reset your password with the <code>/account/reset-password</code> api route:</p>
+    // if (origin) {
+    //     const resetUrl = `${origin}/account/reset-password?token=${account.resetToken}`;
+    //     message = `<p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
+    //                <p><a href="${resetUrl}">${resetUrl}</a></p>`;
+    // } else {
+        message = `<p>Please use the below Password to login:</p>
                    <p><code>${account.resetToken}</code></p>`;
-    }
+  //  }
 
     await sendEmail({
         to: account.email,
